@@ -1,5 +1,5 @@
-<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLPackage</id><coordinates><x>110</x><y>10</y><w>820</w><h>530</h></coordinates><panel_attributes>laboratorio_usuarios
---</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>120</x><y>40</y><w>280</w><h>240</h></coordinates><panel_attributes>Conexion
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><element><id>UMLPackage</id><coordinates><x>0</x><y>10</y><w>820</w><h>530</h></coordinates><panel_attributes>laboratorio_usuarios
+--</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>10</x><y>40</y><w>280</w><h>250</h></coordinates><panel_attributes>Conexion
 --
 -DATABASE: String
 -USERNAME: String
@@ -13,9 +13,10 @@
 +obtenerPool(cls): Pool
 +obtenerConexion(cls): Connection
 +liberarConexion(cls, conexion)
-+cerrarConexiones
++cerrarConexiones(cls)
 --
-Responsabilidades:</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>120</x><y>320</y><w>280</w><h>210</h></coordinates><panel_attributes>CursorDelPool
+Responsabilidades:
+Administrar el pool de conexiones</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>10</x><y>320</y><w>280</w><h>210</h></coordinates><panel_attributes>CursorDelPool
 --
 -conn: String
 -cursor: String
@@ -29,7 +30,7 @@ Administrar el objeto conexion y cursor
 obtenidos a partir del pool de conexiones.
 
 Los metodos enter y exit son la implementacion
-del uso de 'with' para trabajar con el cursor</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>440</x><y>40</y><w>210</w><h>170</h></coordinates><panel_attributes>Usuario
+del uso de 'with' para trabajar con el cursor</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>330</x><y>40</y><w>210</w><h>170</h></coordinates><panel_attributes>Usuario
 --
 -id_usuario: int
 -username: String
@@ -40,7 +41,7 @@ del uso de 'with' para trabajar con el cursor</panel_attributes><additional_attr
 ...
 --
 Responsabilidades:
-Crear objetos de entidad Usuario</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>440</x><y>260</y><w>240</w><h>230</h></coordinates><panel_attributes>UsuarioDao
+Crear objetos de entidad Usuario</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>330</x><y>260</y><w>240</w><h>230</h></coordinates><panel_attributes>UsuarioDao
 --
 -SELECCIONAR: String
 -INSERTAR: String
@@ -55,18 +56,23 @@ Crear objetos de entidad Usuario</panel_attributes><additional_attributes></addi
 Responsabilidades:
 Realizar las operaciones 
 CRUD (Create-Read-Update-Delete) 
-sobre la entidad Usuario (tabla usuario)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>710</x><y>40</y><w>210</w><h>140</h></coordinates><panel_attributes>MenuAppUsuario
+sobre la entidad Usuario (tabla usuario)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>600</x><y>40</y><w>210</w><h>210</h></coordinates><panel_attributes>MenuAppUsuario
 --
 Responsabilidades:
--Contiene un menu con 5 opciones:
+- Contiene un menu con 5 opciones:
 1. Listar usuarios
 2. Agregar usuario
 3. Actualizar usuario
 4. Eliminar usuario
-5. Salir</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>700</x><y>310</y><w>220</w><h>140</h></coordinates><panel_attributes>logger_base
+5. Salir
+- Maneja excepciones con try-catch, 
+vuelve a mostrar el menu y 
+la aplicacion no se detiene
+- Utiliza logger_base para registrar
+los errores</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>590</x><y>310</y><w>220</w><h>140</h></coordinates><panel_attributes>logger_base
 --
 +logger:logging
 --
 Responsabilidades:
 - Configuracion de logging para
-toda la aplicacion</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>240</x><y>270</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>390</x><y>390</y><w>70</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>50;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>540</x><y>200</y><w>30</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;60;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>640</x><y>120</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>70;10;10;10</additional_attributes></element></diagram>
+toda la aplicacion</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>130</x><y>280</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>280</x><y>390</y><w>70</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>50;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>430</x><y>200</y><w>30</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;60;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>530</x><y>120</y><w>90</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>70;10;10;10</additional_attributes></element></diagram>
