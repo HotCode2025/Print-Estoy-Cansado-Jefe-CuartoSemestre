@@ -1,0 +1,16 @@
+# Tooling cache (gentle-ai / SDD)
+.atl/.skill-registry.cache.json
+.atl/skill-registry.md
+
+# Build output (Maven/Gradle) - cubre cualquier proyecto futuro
+target/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
