@@ -11,3 +11,10 @@ public class EstudiantesApplication {
 	}
 
 }
+
+/*
+ * Para ejecutar la aplicacion desde la terminal:
+ * cd
+ * "d:\UTN\Print-Estoy-Cansado-Jefe-CuartoSemestre\Java\Clase 02\AplicacionSistemaEstudiantes\leccion01\estudiantes\estudiantes"
+ * .\mvnw.cmd spring-boot:run
+ */
