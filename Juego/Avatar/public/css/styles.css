@@ -1,0 +1,1013 @@
+/* ==========================================================================
+   Avatar: La Leyenda de Aang — hoja de estilos
+   Mundo visual: pergaminos de papel de arroz, caligrafía a pincel y sellos
+   rojos vermellón (estilo hanko). La elevación se resuelve por pasos de tono
+   (--papel-profundo sobre --papel), nunca con sombras decorativas.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Fuentes locales
+   -------------------------------------------------------------------------- */
+@font-face {
+    font-family: "SpellOfAsia";
+    src: url("../assets/spell_of_asia/Spell of Asia.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   Variables globales (consigna): paleta, tipografía, espacio y radios.
+   Cambiar un valor acá repinta todo el sitio.
+   -------------------------------------------------------------------------- */
+:root {
+    color-scheme: light;
+
+    /* Paleta: suelo cálido comprometido, tinta sepia y sello vermellón */
+    --papel: #E9DFC8;            /* fondo general del sitio */
+    --papel-profundo: #DDD0B2;   /* caras de tarjetas y paneles elevados */
+    --tinta: #2B2118;            /* tinta principal, casi negra sepia */
+    --tinta-suave: #6B5D4A;      /* tinta secundaria para notas */
+    --trazo: #C4B392;            /* reglas, bordes y divisores */
+    --sello: #A63D2F;            /* rojo vermellón de sello, acento primario */
+    --sello-oscuro: #8C2F24;     /* variante del sello para texto pequeño */
+    --sello-suave: rgba(166, 61, 47, 0.24);
+    /* Acentos semánticos: solo identidad de cada carta */
+    --agua: #34648C;
+    --tierra: #55672E;
+    --fuego: #A93B26;
+    --aire: #8A8577;
+
+    /* Tipografía: caligráfica para títulos (Spell of Asia), humanista de sistema para texto,
+       monoespaciada para el registro de combate */
+    --fuente-display: "SpellOfAsia", "Ma Shan Zheng", cursive, serif;
+    --fuente-texto: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --fuente-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+
+    /* Escala tipográfica: pocos pasos que abarcan más del doble de tamaño */
+    --texto-titulo: clamp(2.2rem, 5vw, 3.5rem);
+    --texto-subtitulo: 1.4rem;
+    --texto-nombre-carta: 2rem;
+    --texto-cuerpo: 1rem;
+    --texto-nota: 0.8rem;
+
+    /* Dos registros de espaciado: interior de componentes vs ritmo de secciones */
+    --gap-interno: 8px;
+    --gap-interno-grande: 12px;
+    --ritmo-seccion: 56px;
+
+    /* Radios concéntricos: tarjeta 10px, elementos anidados 6px */
+    --radio-tarjeta: 10px;
+    --radio-interno: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Base del sitio (consigna: background al sitio)
+   -------------------------------------------------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    color: var(--tinta);
+    background-color: var(--papel);
+    /* Fibra sutil del papel de arroz: dos lineas mínimas sobre el suelo base */
+    background-image:
+        repeating-linear-gradient(0deg, rgba(43, 33, 24, 0.045) 0 1px, transparent 7px 7px),
+        repeating-linear-gradient(90deg, rgba(43, 33, 24, 0.042) 0 1px, transparent 7px 7px);
+    font-family: var(--fuente-texto);
+    font-size: var(--texto-cuerpo);
+    line-height: 1.6;
+}
+
+::selection {
+    background: var(--sello-suave);
+    color: var(--tinta);
+}
+
+:root {
+    caret-color: var(--sello);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--papel-profundo);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--trazo);
+    border-radius: var(--radio-interno);
+}
+
+html {
+    scrollbar-color: var(--trazo) var(--papel-profundo);
+}
+
+:focus-visible {
+    outline: 2px solid var(--sello);
+    outline-offset: 2px;
+}
+
+a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.numeros-tabulares {
+    font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Contenedor común
+   -------------------------------------------------------------------------- */
+.contenedor {
+    max-width: 1060px;
+    margin-inline: auto;
+    padding-inline: clamp(16px, 4vw, 32px);
+}
+
+/* --------------------------------------------------------------------------
+   Encabezado: la banda vermellón del título
+   -------------------------------------------------------------------------- */
+.encabezado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-interno);
+    padding-top: 40px;
+}
+
+/* Grupo de logos: fondo vermellón que envuelve ambos logos apilados */
+.logo-grupo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--sello);
+    padding: 1em 10em;
+    border-radius: 5px;
+}
+
+/* Logo del título: ambos logos comparten tamaño responsivo */
+.logo-titulo {
+    width: clamp(260px, 60vw, 480px);
+    height: auto;
+    display: block;
+}
+
+h1 {
+    margin: 0;
+    flex: 1 1 auto;
+    font-family: var(--fuente-display);
+    font-weight: 400;
+    font-size: var(--texto-titulo);
+    line-height: 1.08;
+    text-align: center;
+    color: var(--papel);
+    background-color: var(--sello);
+    padding: 0.35em 0.6em;
+    border-radius: var(--radio-tarjeta);
+}
+
+/* --------------------------------------------------------------------------
+   Títulos de sección: imágenes .webp que reemplazan al h2
+   -------------------------------------------------------------------------- */
+.seccion-titulo {
+    display: block;
+    width: clamp(180px, 40vw, 300px);
+    height: auto;
+    margin: 0 0 var(--gap-interno-grande);
+}
+h2 {
+    margin: 0 0 var(--gap-interno-grande);
+    font-family: var(--fuente-display);
+    font-weight: 400;
+    font-size: var(--texto-subtitulo);
+    line-height: 1.15;
+    color: var(--tinta);
+}
+
+/* Remate a pincel bajo cada título de sección */
+h2::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 2px;
+    margin-top: 6px;
+    background: var(--trazo);
+}
+
+.descripcion-seccion {
+    margin: 0 0 var(--gap-interno-grande);
+    max-width: 60ch;
+    color: var(--tinta-suave);
+}
+
+/* --------------------------------------------------------------------------
+   Ritmo entre secciones (consigna: responsive y jerarquía espacial)
+   El registro queda por encima del título (56 px) y muy por debajo del
+   aire interno (8–12 px): el espacio superior liga cada título a su grupo.
+   -------------------------------------------------------------------------- */
+.seccion {
+    margin-block-start: var(--ritmo-seccion);
+}
+
+/* Variación deliberada de ritmo: ataque y registro forman un mismo bloque
+   denso de combate, así que respiran menos que el resto de la página */
+.seccion-ajustada {
+    margin-block-start: 32px;
+}
+
+/* --------------------------------------------------------------------------
+   Cartas (elemento distintivo del sitio)
+   -------------------------------------------------------------------------- */
+.cartas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--gap-interno-grande);
+}
+
+.carta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-interno);
+    flex: 1 1 160px;
+    max-width: 210px;
+    min-height: 240px;
+    padding: 14px var(--gap-interno-grande) var(--gap-interno-grande);
+    background-color: var(--papel-profundo);
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-tarjeta);
+    cursor: pointer;
+}
+
+/* Franja superior con el color de la nación: identidad de la carta */
+.carta::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    border-radius: var(--radio-tarjeta) var(--radio-tarjeta) 0 0;
+    background-color: var(--color-nacion, var(--tinta-suave));
+}
+
+.carta-fuego {
+    --color-nacion: var(--fuego);
+}
+
+.carta-aire {
+    --color-nacion: var(--aire);
+}
+
+.carta-agua {
+    --color-nacion: var(--agua);
+}
+
+.carta-tierra {
+    --color-nacion: var(--tierra);
+}
+
+/* Imagen de fondo de cada carta */
+.carta-fuego { background-image: url("../assets/zuko.webp"); }
+.carta-aire  { background-image: url("../assets/aang.webp"); }
+.carta-agua  { background-image: url("../assets/katara.webp"); }
+.carta-tierra{ background-image: url("../assets/toph.webp"); }
+
+.carta {
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+/* ::before = franja de nación (parte inferior, z-index bajo) */
+.carta::before {
+    z-index: 1;
+}
+
+/* Overlay gradiente sobre la imagen: protege el nombre SIEMPRE
+   y se oscurece en hover para que el SVG y la etiqueta sean legibles */
+/* deliberate-ignore round-stat — porcentajes de gradiente CSS, no stats de UI */
+.cartas label::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio-tarjeta);
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 10%,
+        rgba(30, 22, 15, 0.25) 55%,
+        rgba(30, 22, 15, 0.7) 92%,
+        rgba(30, 22, 15, 0.85) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+    transition: background 200ms ease-out;
+}
+
+/* En hover/focus: overlay más oscuro + blur para que SVG y etiqueta sean legibles */
+.cartas label:hover::after,
+.carta:has(input:focus-visible)::after {
+    background: linear-gradient(
+        to bottom,
+        rgba(30, 22, 15, 0.1) 0%,
+        rgba(30, 22, 15, 0.55) 35%,
+        rgba(30, 22, 15, 0.82) 65%,
+        rgba(30, 22, 15, 0.92) 100%
+    );
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+}
+
+.cartas label:hover,
+.carta:has(input:focus-visible) {
+    border-color: var(--tinta-suave);
+}
+
+/* Todo el contenido de la carta por encima del overlay */
+.cartas label > * {
+    position: relative;
+    z-index: 3;
+}
+
+/* El sello "ELEGIDO" va en z-index alto para no quedar tapado */
+.cartas label > .carta-seleccion {
+    z-index: 4;
+}
+
+/* El radio button real vive dentro de la etiqueta pero no se ve:
+   sigue siendo enfocable con teclado y anuncia su estado al lector */
+.carta input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+/* El foco del radio se pinta sobre la carta completa */
+.carta input:focus-visible {
+    outline: none;
+}
+
+.carta:has(input:focus-visible) {
+    outline: 2px solid var(--sello);
+    outline-offset: 2px;
+}
+
+/* Carta elegida: borde de tinta vermellón y sello estampado */
+.carta:has(input:checked) {
+    border-color: var(--sello-oscuro);
+}
+
+/* Sello "ELEGIDO": posicionado arriba al centro, siempre visible por encima del overlay */
+.carta-seleccion {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-4deg);
+    visibility: hidden;
+    padding: 0.15em 0.5em;
+    border: 2px solid var(--sello-oscuro);
+    border-radius: var(--radio-interno);
+    background-color: var(--papel);
+    color: var(--sello-oscuro);
+    font-family: var(--fuente-display);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.carta:has(input:checked) .carta-seleccion {
+    visibility: visible;
+}
+
+/* Texto de la carta: siempre blanco con sombra para legibilidad sobre imagen */
+.emblema {
+    width: clamp(64px, 55%, 92px);
+    aspect-ratio: 1;
+    color: rgba(255, 255, 255, 0.9);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* SVG visible solo en hover/focus */
+.cartas label:hover .emblema,
+.carta:has(input:focus-visible) .emblema {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Imagen del nombre del personaje: siempre visible sobre la carta */
+.carta-nombre-img {
+    width: clamp(80px, 60%, 120px);
+    height: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.carta-elemento {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* Etiqueta visible solo en hover/focus */
+.cartas label:hover .carta-elemento,
+.carta:has(input:focus-visible) .carta-elemento {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#boton-personaje {
+    display: block;
+    margin: var(--gap-interno-grande) auto 0;
+}
+
+/* --------------------------------------------------------------------------
+   Botones (consigna: tipografía protagonista, sin íconos ni emojis)
+   -------------------------------------------------------------------------- */
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: var(--radio-interno);
+    font-family: var(--fuente-texto);
+    font-size: var(--texto-cuerpo);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.boton-primario {
+    color: var(--papel);
+    background-color: var(--sello);
+    border: 1px solid var(--sello-oscuro);
+}
+
+.boton-secundario,
+.boton-ataque {
+    color: var(--tinta);
+    background-color: var(--papel-profundo);
+    border: 1px solid var(--tinta-suave);
+}
+
+.boton-ataque {
+    font-size: 1.05rem;
+}
+
+.boton-primario:hover {
+    background-color: var(--sello-oscuro);
+}
+
+.boton-secundario:hover,
+.boton-ataque:hover {
+    background-color: var(--papel);
+}
+
+/* Estado deshabilitado antes de elegir personaje: sin respuesta al pasar
+   el puntero, cursor prohibido y el motivo explicado en el atributo title */
+.boton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Marcador del duelo
+   -------------------------------------------------------------------------- */
+.marcador {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--gap-interno-grande);
+    margin-bottom: var(--gap-interno-grande);
+}
+
+.lado-jugador,
+.lado-enemigo {
+    margin: 0;
+    text-align: center;
+}
+
+.quien {
+    display: block;
+    font-size: var(--texto-nota);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+}
+
+.lado-jugador strong,
+.lado-enemigo strong {
+    display: block;
+    font-family: var(--fuente-display);
+    font-weight: 400;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    color: var(--tinta);
+}
+
+/* Imágenes de nombre en el marcador de duelo */
+.marcador-nombre-img {
+    display: block;
+    width: clamp(80px, 20vw, 140px);
+    height: auto;
+    margin: 0 auto;
+}
+
+strong:empty::before {
+    content: "—";
+    font-weight: 400;
+    color: var(--tinta-suave);
+}
+
+.vidas {
+    display: block;
+    font-family: var(--fuente-mono);
+    font-size: 0.9rem;
+    color: var(--tinta);
+}
+
+.contra {
+    font-size: var(--texto-nota);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+}
+
+.acciones {
+    display: flex;
+    gap: var(--gap-interno-grande);
+}
+
+.acciones .boton {
+    flex: 1;
+}
+
+.nota {
+    font-size: var(--texto-nota);
+    color: var(--tinta-suave);
+}
+
+.aviso {
+    min-height: 1.2em;
+    margin: var(--gap-interno) 0 0;
+}
+
+.aviso:not(:empty) {
+    color: var(--sello-oscuro);
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Registro de combate: monoespaciado con cifras tabulares
+   -------------------------------------------------------------------------- */
+.registro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-interno);
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.registro p {
+    margin: 0;
+    padding: 10px 14px;
+    background-color: var(--papel-profundo);
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-interno);
+    font-family: var(--fuente-mono);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+/* Las rondas anteriores se atenúan: lo último manda */
+.registro p:not(:last-child) {
+    opacity: 0.66;
+}
+
+.registro strong {
+    color: var(--sello-oscuro);
+}
+
+/* El mensaje inicial desaparece en cuanto existe la primera entrada */
+#registro-combate:has(#mensajes:not(:empty)) #registro-vacio {
+    display: none;
+}
+
+#reiniciar {
+    text-align: center;
+    display: none;
+}
+
+.mensaje-victoria {
+    border-left: 3px solid var(--tierra);
+}
+
+.mensaje-derrota {
+    border-left: 3px solid var(--sello-oscuro);
+}
+
+/* --------------------------------------------------------------------------
+   Cuadro de reglas
+   -------------------------------------------------------------------------- */
+.dialogo {
+    max-width: min(92vw, 460px);
+    padding: 28px 26px;
+    background-color: var(--papel-profundo);
+    color: var(--tinta);
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-tarjeta);
+}
+
+.dialogo::backdrop {
+    background: rgba(43, 33, 24, 0.45);
+}
+
+.tabla-reglas {
+    width: 100%;
+    margin-block: var(--gap-interno-grande);
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.tabla-reglas caption {
+    caption-side: top;
+    padding-bottom: var(--gap-interno);
+    text-align: left;
+    font-size: var(--texto-nota);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tinta);
+}
+
+.tabla-reglas th {
+    padding: var(--gap-interno);
+    text-align: left;
+    font-size: var(--texto-nota);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--tinta-suave);
+}
+
+.tabla-reglas td {
+    padding: var(--gap-interno);
+}
+
+.tabla-reglas td:last-child {
+    font-weight: 700;
+}
+
+.lista-resultados {
+    margin: 0 0 var(--gap-interno-grande);
+    padding-inline-start: 1.1em;
+}
+
+.lista-resultados li {
+    margin-block: var(--gap-interno);
+}
+
+.lista-resultados li::marker {
+    color: var(--sello);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de resultado final: carta grande con flip3D
+   -------------------------------------------------------------------------- */
+.dialogo-resultado {
+    padding: 28px 26px;
+    background-color: var(--papel-profundo);
+    color: var(--tinta);
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-tarjeta);
+    text-align: center;
+}
+
+.dialogo-resultado::backdrop {
+    background: rgba(43, 33, 24, 0.6);
+}
+
+.dialogo-resultado h2 {
+    margin-bottom: var(--gap-interno);
+}
+
+.dialogo-resultado h2::after {
+    display: none;
+}
+
+.resultado-mensaje {
+    margin: 0 0 20px;
+    font-family: var(--fuente-display);
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.resultado-mensaje.ganaste { color: var(--tierra); }
+.resultado-mensaje.perdiste { color: var(--sello-oscuro); }
+.resultado-mensaje.empate { color: var(--tinta-suave); }
+
+/* Contenedor 3D */
+.carta-resultado-contenedor {
+    perspective: 900px;
+    margin: 0 auto 20px;
+}
+
+/* Layout del duelo: dos cartas + centro con VS */
+.duelo-cartas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Carta individual dentro del duelo */
+.duelo-carta {
+    width: 200px;
+    height: 280px;
+    flex-shrink: 0;
+}
+
+/* Carta ganadora: brillo dorado */
+.duelo-carta.ganador {
+    filter: brightness(1.1) saturate(1.15);
+    position: relative;
+}
+
+.duelo-carta.ganador::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--radio-tarjeta) + 4px);
+    border: 3px solid var(--sello);
+    box-shadow: 0 0 16px rgba(166, 61, 47, 0.4);
+    pointer-events: none;
+}
+
+/* Carta perdedora: atenuada y desaturada */
+.duelo-carta.perdedor-card {
+    filter: brightness(0.6) saturate(0.3) opacity(0.7);
+}
+
+/* Centro: VS + resultado */
+.duelo-centro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.duelo-vs {
+    font-family: var(--fuente-display);
+    font-size: 2rem;
+    color: var(--tinta);
+    line-height: 1;
+}
+
+/* La carta que rota: empieza mostrando el "?" (frente) y gira para mostrar al personaje */
+.carta-resultado-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+
+/* Cara frontal (patrón con "?") */
+.carta-modal-frente {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio-tarjeta);
+    background-color: var(--papel-profundo);
+    background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(43,33,24,0.03) 8px, rgba(43,33,24,0.03) 9px),
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(43,33,24,0.03) 8px, rgba(43,33,24,0.03) 9px);
+    border: 2px solid var(--trazo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+}
+
+.carta-modal-frente::after {
+    content: "?";
+    font-family: var(--fuente-display);
+    font-size: 4rem;
+    color: var(--trazo);
+}
+
+/* Cara trasera (personaje) — girada 180° para que se vea al dar la vuelta */
+.carta-modal-reverso {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio-tarjeta);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    border: 2px solid var(--trazo);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+}
+
+.carta-modal-reverso::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio-tarjeta);
+    background: linear-gradient(
+        to bottom,
+        transparent 25%,
+        rgba(233, 223, 200, 0.3) 50%,
+        rgba(221, 208, 178, 0.92) 78%,
+        var(--papel-profundo) 100%
+    );
+}
+
+.carta-modal-nombre {
+    position: relative;
+    z-index: 1;
+    font-family: var(--fuente-display);
+    font-size: 1.6rem;
+    color: var(--tinta);
+    text-shadow: 0 1px 3px rgba(233, 223, 200, 0.7);
+}
+
+/* Imagen de nombre en el modal de resultado */
+.carta-modal-nombre-img {
+    position: relative;
+    z-index: 1;
+    width: clamp(80px, 60%, 120px);
+    height: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+/* Animación flip: surge desde abajo y rota para mostrar la cara del personaje */
+@keyframes carta-flip {
+    0% {
+        transform: translateY(50px) rotateX(20deg) rotateY(0deg) scale(0.85);
+    }
+    50% {
+        transform: translateY(-6px) rotateX(-3deg) rotateY(90deg) scale(1.02);
+    }
+    100% {
+        transform: translateY(0) rotateX(0deg) rotateY(180deg) scale(1);
+    }
+}
+
+.carta-resultado-inner.animar {
+    animation: carta-flip 800ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* --------------------------------------------------------------------------
+   Pie de página
+   -------------------------------------------------------------------------- */
+.pie {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-block-start: var(--ritmo-seccion);
+    padding-block: 32px;
+    border-top: 1px solid var(--trazo);
+}
+
+.pie img {
+    border-radius: var(--radio-interno);
+}
+
+.pie p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--tinta-suave);
+}
+
+.pie strong {
+    color: var(--tinta);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive (consigna): debajo de 640 px se comprime el ritmo vertical,
+   el encabezado se apila y las columnas pasan a una sola vía
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+    :root {
+        --ritmo-seccion: 40px;
+    }
+
+    .encabezado {
+        padding-top: 24px;
+    }
+
+    .marcador {
+        grid-template-columns: 1fr;
+    }
+
+    .duelo-carta {
+        width: 120px;
+        height: 180px;
+    }
+
+    .duelo-vs {
+        font-size: 1.5rem;
+    }
+
+    .acciones {
+        flex-direction: column;
+    }
+
+    .pie {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Movimiento (presupuesto: exactamente tres momentos, todos opcionales)
+   Solo se activan cuando el visitante no pide movimiento reducido.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+
+    /* Momento 1: la carta se inclina siguiendo el puntero (vars --inclinacion-x/y
+       escritas por JS, máximo ±10 grados) y responde al presión con escala */
+    .carta {
+        transition: transform 100ms ease-out;
+        transform: perspective(700px) rotateX(var(--inclinacion-x, 0deg)) rotateY(var(--inclinacion-y, 0deg));
+    }
+
+    .carta:active {
+        transform: perspective(700px) rotateX(var(--inclinacion-x, 0deg)) rotateY(var(--inclinacion-y, 0deg)) scale(0.97);
+    }
+
+    /* Sombra única permitida: oclusión ambiente corta justo bajo la carta
+       levantada (desenfoque menor a 16 px, nunca junto a sombras anchas) */
+    .carta:hover {
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.14);
+    }
+
+    .boton {
+        transition: transform 100ms ease-out, background-color 100ms ease-out;
+    }
+
+    .boton:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    /* Momento 2: énfasis de entrada de cada resultado en el registro */
+    @keyframes entrar-registro {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+    }
+
+    .registro p {
+        animation: entrar-registro 250ms ease-out;
+    }
+
+    /* Momento 3: apertura del cuadro de reglas */
+    @keyframes abrir-dialogo {
+        from {
+            opacity: 0;
+            transform: translateY(6px) scale(0.97);
+        }
+    }
+
+    @keyframes fundir-fondo {
+        from {
+            opacity: 0;
+        }
+    }
+
+    .dialogo[open] {
+        animation: abrir-dialogo 180ms ease-out;
+    }
+
+    .dialogo[open]::backdrop {
+        animation: fundir-fondo 180ms ease-out;
+    }
+}

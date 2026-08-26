@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Juego de combate por turnos inspirado en La Leyenda de Aang: elige un personaje, enfréntate a la computadora y defiende tus tres vidas.">
+    <title>Avatar: La Leyenda de Aang</title>
+    <link rel="icon" type="image/webp" href="./assets/logo.webp">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <header class="encabezado contenedor">
+        <div class="logo-grupo">
+            <img src="./assets/avatar-logo.webp" alt="Avatar" class="logo-titulo logo-principal">
+            <img src="./assets/avatar-logo2.webp" alt="La Leyenda de Aang" class="logo-titulo logo-secundario">
+        </div>
+        <button id="boton-reglas" type="button" class="boton boton-secundario">Reglas</button>
+    </header>
+
+    <main class="contenedor">
+        <section id="seleccion-personaje" class="seccion">
+            <img src="./assets/seleccionar-personaje.webp" alt="Seleccionar personaje" class="seccion-titulo">
+            <p class="descripcion-seccion">Cada carta es un maestro de una nación. Elige el tuyo para comenzar: el personaje enemigo se sortea al azar.</p>
+
+            <!-- Tarjetas coleccionables: cada etiqueta envuelve su radio button,
+                 así el click en la carta marca el personaje y el teclado también funciona -->
+            <div class="cartas">
+                <label class="carta carta-fuego">
+                    <input type="radio" name="personaje" id="Zuko" value="Zuko">
+                    <svg class="emblema" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                        <path d="M50 14 C56 26 70 33 70 52 C70 68 61 78 50 78 C39 78 30 68 30 52 C30 41 37 36 40 28 C43 36 47 38 49 34 C51 30 47 22 50 14 Z" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M50 46 C54 52 58 55 58 62 C58 69 54 73 50 73 C46 73 42 69 42 62 C42 56 46 53 50 46 Z" stroke="currentColor" stroke-width="5" fill="none" stroke-linejoin="round"/>
+                    </svg>
+                    <img src="./assets/name-zuko.webp" alt="Zuko" class="carta-nombre-img">
+                    <span class="carta-elemento">Nación del Fuego</span>
+                    <span class="carta-seleccion">ELEGIDO</span>
+                </label>
+
+                <label class="carta carta-aire">
+                    <input type="radio" name="personaje" id="Aang" value="Aang">
+                    <svg class="emblema" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                        <defs>
+                            <path id="espiral-aire" d="M68 30 C52 18 30 24 24 42 C19 58 30 72 45 72 C57 72 66 64 65 53 C64 44 57 39 50 42 C44 45 43 52 48 56" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </defs>
+                        <use href="#espiral-aire"/>
+                        <use href="#espiral-aire" transform="rotate(120 50 50)"/>
+                        <use href="#espiral-aire" transform="rotate(240 50 50)"/>
+                    </svg>
+                    <img src="./assets/name-aang.webp" alt="Aang" class="carta-nombre-img">
+                    <span class="carta-elemento">Nómadas del Aire</span>
+                    <span class="carta-seleccion">ELEGIDO</span>
+                </label>
+
+                <label class="carta carta-agua">
+                    <input type="radio" name="personaje" id="Katara" value="Katara">
+                    <svg class="emblema" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                        <circle cx="50" cy="50" r="36" stroke="currentColor" stroke-width="5" fill="none"/>
+                        <path d="M22 48 Q30 40 38 48 T54 48 T70 48" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+                        <path d="M26 62 Q34 54 42 62 T58 62 T74 62" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <img src="./assets/name-katara.webp" alt="Katara" class="carta-nombre-img">
+                    <span class="carta-elemento">Tribu Agua</span>
+                    <span class="carta-seleccion">ELEGIDO</span>
+                </label>
+
+                <label class="carta carta-tierra">
+                    <input type="radio" name="personaje" id="Toph" value="Toph">
+                    <svg class="emblema" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                        <circle cx="50" cy="50" r="36" stroke="currentColor" stroke-width="5" fill="none"/>
+                        <rect x="36" y="36" width="28" height="28" stroke="currentColor" stroke-width="5" fill="none" stroke-linejoin="round"/>
+                    </svg>
+                    <img src="./assets/name-toph.webp" alt="Toph" class="carta-nombre-img">
+                    <span class="carta-elemento">Reino Tierra</span>
+                    <span class="carta-seleccion">ELEGIDO</span>
+                </label>
+            </div>
+
+            <button id="boton-personaje" type="button" class="boton boton-primario">Seleccionar</button>
+        </section>
+
+        <section id="seleccionar-ataque" class="seccion">
+            <img src="./assets/elegir-ataque.webp" alt="Elige tu ataque" class="seccion-titulo">
+
+            <div class="marcador numeros-tabulares">
+                <p class="lado-jugador"><span class="quien">Tu personaje</span> <img id="personaje-jugador" class="marcador-nombre-img" alt=""><span class="vidas"><span id="vidas-jugador">3</span> vidas</span></p>
+                <span class="contra" aria-hidden="true">contra</span>
+                <p class="lado-enemigo"><span class="quien">Enemigo</span> <img id="personaje-enemigo" class="marcador-nombre-img" alt=""><span class="vidas"><span id="vidas-enemigo">3</span> vidas</span></p>
+            </div>
+
+            <!-- Los ataques permanecen deshabilitados hasta elegir personaje;
+                 el atributo title explica el motivo -->
+            <div class="acciones">
+                <button id="boton-punetazo" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Puñetazo</button>
+                <button id="boton-patada" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Patada</button>
+                <button id="boton-barrida" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Barrida</button>
+            </div>
+            <p id="aviso-seleccion" class="nota aviso" aria-live="polite"></p>
+        </section>
+
+        <section id="registro-combate" class="seccion seccion-ajustada">
+            <img src="./assets/registro-combate.webp" alt="Registro de combate" class="seccion-titulo">
+            <p class="nota" id="registro-vacio">Los resultados de cada ronda aparecerán aquí.</p>
+            <div id="mensajes" class="registro numeros-tabulares" aria-live="polite"></div>
+        </section>
+
+        <section id="reiniciar" class="seccion">
+            <button id="boton-reiniciar" type="button" class="boton boton-secundario">Reiniciar partida</button>
+        </section>
+    </main>
+
+    <!-- Reglas del juego en un cuadro de diálogo nativo -->
+    <dialog id="dialogo-reglas" class="dialogo">
+        <h2>Reglas del juego</h2>
+        <p>Cada duelo funciona como piedra, papel o tijera: eliges un ataque y la computadora sortea el suyo.</p>
+        <table class="tabla-reglas">
+            <caption>Relación entre ataques</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Ataque</th>
+                    <th scope="col">Vence a</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Puñetazo</td>
+                    <td>Barrida</td>
+                </tr>
+                <tr>
+                    <td>Barrida</td>
+                    <td>Patada</td>
+                </tr>
+                <tr>
+                    <td>Patada</td>
+                    <td>Puñetazo</td>
+                </tr>
+            </tbody>
+        </table>
+        <ul class="lista-resultados">
+            <li>Mismo ataque de ambos lados: EMPATE</li>
+            <li>Tu ataque vence al del enemigo: GANASTE</li>
+            <li>El ataque enemigo vence al tuyo: PERDISTE</li>
+        </ul>
+        <button id="boton-cerrar-reglas" type="button" class="boton boton-primario">Entendido</button>
+    </dialog>
+
+    <!-- Modal de resultado final: carta ganadora con flip3D -->
+    <dialog id="dialogo-resultado" class="dialogo-resultado">
+        <h2 id="resultado-titulo">Fin del duelo</h2>
+        <p class="resultado-mensaje" id="resultado-mensaje"></p>
+        <div class="carta-resultado-contenedor" id="carta-resultado-contenedor"></div>
+        <button id="boton-reiniciar-modal" type="button" class="boton boton-primario">Jugar de nuevo</button>
+    </dialog>
+
+    <footer class="pie contenedor">
+        <img src="./assets/logo.webp" alt="" width="76" height="28">
+        <p>Un proyecto de <strong>Print("Estoy Cansado Jefe")</strong> · Programación, 4.º semestre</p>
+    </footer>
+
+    <script src="./js/avatar.js"></script>
+
+</body>
+</html>
