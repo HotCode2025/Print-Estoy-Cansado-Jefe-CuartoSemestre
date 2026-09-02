@@ -29,14 +29,14 @@ const productos = [
     },
       {
         id: 5,
-        productName: "enlatados",
+        productName: "Enlatados",
         price: 250,
         quanty: 1,
         img: "/e-commerce/client/media/ft.enlatados.png",
     },
        {
         id: 6,
-        productName: "varios",
+        productName: "Varios",
         price: 2500,
         quanty: 1,
         img: "/e-commerce/client/media/ft.varios.png",

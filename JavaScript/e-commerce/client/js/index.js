@@ -20,7 +20,7 @@ productos.forEach((product) => {
     if(repeat) {
       cart.map((prod) => {
         if(prod.id === product.id){
-          prod.quantity++
+          prod.quanty++
         }
       });
     }else {
@@ -28,7 +28,7 @@ productos.forEach((product) => {
       id: product.id,
       productName: product.productName,
       price: product.price,
-      quantity: product.quantity,
+      quanty: product.quanty,
       img: product.img,
       });
     }

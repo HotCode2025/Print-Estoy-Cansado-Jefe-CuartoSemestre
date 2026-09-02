@@ -38,21 +38,21 @@ const displayCart = () => {
             <div class="product-info">
                 <h4>${product.productName}</h4>
             </div>
-        <div class="quantity">
-            <span class="quantity-btn-decrease">-</span>
-            <span class="quantity-input">${product.quantity}</span>
-            <span class="quantity-btn-increase">+</span>
+        <div class="quanty">
+            <span class="quanty-btn-decrease">-</span>
+            <span class="quanty-input">${product.quanty}</span>
+            <span class="quanty-btn-increase">+</span>
         </div>
-            <div class="price">${product.price * product.quantity} $</div>
+            <div class="price">${product.price * product.quanty} $</div>
             <div class="delete-product">❌</div>
     </div>
         `;
     modalContainer.append(modalBody);
 
-    const decrease = modalBody.querySelector(".quantity-btn-decrease");
+    const decrease = modalBody.querySelector(".quanty-btn-decrease");
     decrease.addEventListener("click", () => {
-      if (product.quantity !== 1) {
-        product.quantity--;
+      if (product.quanty !== 1) {
+        product.quanty--;
         displayCart();
       }
     });
@@ -63,15 +63,15 @@ const displayCart = () => {
       deleteCartProduct(product.id);
     });
 
-    const increase = modalBody.querySelector(".quantity-btn-increase");
+    const increase = modalBody.querySelector(".quanty-btn-increase");
     increase.addEventListener("click", () => {
-      product.quantity++;
+      product.quanty++;
       displayCart();
     });
   });
 
   //modal Footer
-  const total = cart.reduce((acc, el) => acc + el.price * el.quantity, 0);
+  const total = cart.reduce((acc, el) => acc + el.price * el.quanty, 0);
 
   const modalFooter = document.createElement("div");
   modalFooter.className = "modal-footer";
