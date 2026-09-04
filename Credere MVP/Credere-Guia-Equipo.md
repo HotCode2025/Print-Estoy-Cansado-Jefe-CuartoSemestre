@@ -1,8 +1,10 @@
 # Credere — Guía del Equipo
 
-> **Versión:** 1.0 — Agosto 2026
+> **Versión:** 1.1 Vanilla — Septiembre 2026 (actualiza v1.0 Agosto 2026)
+> **Cambio principal:** se reemplaza Next.js + React + TypeScript por HTML5 + JavaScript Vanilla (módulos ES) + Tailwind por CDN, sin Node ni build. El backend profesional se mantiene: Supabase (PostgreSQL + Auth + RLS).
 > **Objetivo:** Que todo el equipo entienda qué vamos a construir, por qué usamos estas tecnologías y qué nos toca en cada fase.
 > **Repositorio:** ()
+> **Fuentes válidas:** `TAREAS-Vanilla.md` (fases y tareas) y `Credere-MER-Completo.md` (modelo de datos).
 
 ---
 
@@ -60,7 +62,7 @@ Credere es una **aplicación web** para que personas que prestan dinero puedan r
 | Registros en cuadernos | Se pierde información, no hay respaldo |
 | Hojas de cálculo | Desorden, difícil de buscar, errores de fórmula |
 | WhatsApp | Datos mezclados con conversaciones, imposible reportar |
-| Sin estados visibles | No sabés quién pagó y quién debe |
+| Sin estados visibles | No se sabe quién pagó y quién debe |
 | Sin búsqueda rápida | Encontrar un cliente toma minutos |
 
 **Credere resuelve:** Centralizar todo en un solo lugar, con búsqueda instantánea, estados visuales y control de acceso.
@@ -99,24 +101,31 @@ Credere es una **aplicación web** para que personas que prestan dinero puedan r
 
 ## 4. Stack tecnológico y por qué
 
-### Frontend: Next.js 14
+> **Decisión (v1.1):** Frontend en HTML5 + JavaScript Vanilla (módulos ES) + Tailwind por CDN. Sin React, sin TypeScript, sin Next.js, sin Node ni build. El backend sigue siendo profesional: Supabase (PostgreSQL + Auth + Row Level Security).
 
-**¿Qué es?** Un framework de React para crear aplicaciones web.
+### Frontend: HTML5 + JavaScript Vanilla (módulos ES) + Tailwind por CDN
+
+**¿Qué es?** Páginas HTML estáticas que cargan Tailwind desde CDN y lógica en archivos `js/*.js` con `import`/`export` nativos del navegador. La librería `supabase-js` se usa directamente desde cada módulo.
 
 **¿Por qué lo usamos?**
-- Un solo lenguaje (TypeScript) para frontend y backend
-- Tiene "API Routes" — no necesitamos servidor separado
-- Se deploya gratis en Vercel con un push a GitHub
-- Server Components = mejor rendimiento
+- Arranque inmediato: son 10 personas sin experiencia previa en React; no hay curva de aprendizaje ni instalación.
+- Sin herramientas: no se requiere Node, npm, compilación ni configuración de bundler.
+- Suficiente para el MVP: formularios, tablas, filtros y línea de tiempo se resuelven con funciones de render en cada módulo.
+- Sigue siendo serio: la parte profesional vive en el backend (PostgreSQL + RLS + Auth de Supabase); el frontend solo consume datos con reglas de seguridad aplicadas en la base.
 
 **¿Por qué NO otras opciones?**
 
 | Alternativa | Por qué no |
 |-------------|-----------|
-| React puro | Hay que configurar Webpack, Babel, servidor de APIs por separado |
-| Vue | Ecosistema más chico, menos tutoriales en español |
-| Angular | Demasiado pesado para un MVP, curva de aprendizaje alta |
-| HTML/CSS/JS puro | No escala, no hay componentes reutilizables |
+| Next.js / React + TypeScript | Curva de aprendizaje alta para el equipo actual; exige Node, build y deploy con compilación. Se puede migrar después sin cambiar la base de datos. |
+| Vue | Ecosistema más chico, menos tutoriales en español; agrega同样 una capa de framework que el equipo no necesita ahora. |
+| Angular | Demasiado pesado para un MVP, curva de aprendizaje alta. |
+| Vanilla sin disciplina | Sí escala si se respeta una sola inicialización (`js/supabaseClient.js`), un módulo por dominio (`clients.js`, `loans.js`, `payments.js`) y políticas RLS en la base. El riesgo no es la tecnología, es duplicar clientes o saltarse el guardia de sesión. |
+
+**Reglas Vanilla obligatorias:**
+1. Un único punto de inicialización: `js/supabaseClient.js` (prohibido crear otro cliente en otro archivo).
+2. Un módulo por dominio: `js/auth.js`, `js/clients.js`, `js/loans.js`, `js/payments.js`, `js/utils.js` (guardia de sesión, toast, debounce).
+3. Cada página protegida llama a `requireSessionOrRedirect()` al cargar.
 
 ---
 
@@ -126,9 +135,10 @@ Credere es una **aplicación web** para que personas que prestan dinero puedan r
 
 **¿Por qué la usamos?**
 - PostgreSQL es la base de datos más confiable del mundo
-- Auth incluido — no hay que codear login desde cero
+- Auth incluido — no hay que programar login desde cero
 - Dashboard web para ver los datos sin herramientas extra
 - 500MB gratis alcanza para todo el MVP
+- Row Level Security (RLS): cada usuario solo ve sus datos aunque el frontend sea estático
 
 **¿Por qué NO otras opciones?**
 
@@ -139,29 +149,41 @@ Credere es una **aplicación web** para que personas que prestan dinero puedan r
 | MongoDB | NoSQL — mismo problema que Firebase |
 | SQLite | No funciona bien en la nube, un solo usuario a la vez |
 
+El esquema canónico vive en `sql/schema.sql` y el modelo completo en `Credere-MER-Completo.md`. Se ejecuta desde el SQL Editor de Supabase y luego se verifica que RLS esté activado.
+
 ---
 
-### Deploy: Vercel
+### Deploy: sitio estático (Vercel sin build o GitHub Pages)
 
-**¿Qué es?** Una plataforma que toma tu código de GitHub y lo publica como sitio web.
+**¿Qué es?** Publicar las carpetas HTML/CSS/JS tal cual, sin compilar.
 
-**¿Por qué la usamos?**
-- Git push = deploy automático
-- Cada branch tiene su propia URL para probar
+**¿Por qué lo usamos?**
+- No hay paso de build: el push a GitHub publica directamente
+- Cada branch puede tener su propia URL de vista previa
 - SSL (HTTPS) incluido sin configurar
 - Gratis para proyectos personales/académicos
 
+**Notas:**
+- En Vercel se configura como proyecto estático (sin comando de build, sin `npm run dev`).
+- Alternativa válida: GitHub Pages con la misma estructura de archivos.
+
 ---
 
-### Autenticación: Supabase Auth
+### Autenticación: Supabase Auth con `supabase-js` + guardia de sesión
 
-**¿Qué es?** Sistema de login y registro incluido en Supabase.
+**¿Qué es?** Sistema de login y registro incluido en Supabase, consumido desde el navegador con la librería `supabase-js` v2.
 
 **¿Por qué lo usamos?**
-- No hay que codear registro, login, sesiones, recuperación de contraseña
+- No hay que programar registro, login, sesiones ni recuperación de contraseña
 - Soporta email/password, Google, GitHub
 - Row Level Security — cada usuario solo ve sus datos
 - Gratis hasta 50,000 usuarios activos/mes
+
+**Patrón en Vanilla:**
+- `login.html` y `register.html` usan `supabase.auth.signInWithPassword()` / `signUp()`.
+- Cada página protegida importa `requireSessionOrRedirect()` desde `js/utils.js`; si no hay sesión, redirige a `login.html`.
+- Cerrar sesión: `supabase.auth.signOut()` + redirección a `login.html`.
+- Nunca exponer la clave `service_role` en el frontend; solo `SUPABASE_URL` + `SUPABASE_ANON_KEY` en `js/config.js`.
 
 ---
 
@@ -207,28 +229,38 @@ payments (
 | `paid` | Verde claro | Completado |
 | `canceled` | Gris | Cancelado |
 
+> Detalle completo de entidades, atributos, relaciones y SQL en `Credere-MER-Completo.md`. El archivo ejecutable es `sql/schema.sql`.
+
 ---
 
 ## 6. Qué va en el MVP y qué no
 
 ### ✅ MVP (lo que construimos ahora)
 
-| Pantalla | Funcionalidad | Prioridad |
-|----------|---------------|-----------|
-| Registro de cliente | Formulario con validación y vista previa | Alta |
-| Lista de clientes | Ver, buscar, filtrar clientes | Alta |
-| Detalle de préstamo | Ver estado, línea de tiempo de pagos | Alta |
-| Registro de pago | Marcar cuotas como pagadas | Alta |
-| Búsqueda | Buscar por nombre, ID, teléfono | Alta |
-| Login/Registro | Autenticación básica | Alta |
+| Pantalla | Funcionalidad | Prioridad | Fase Vanilla |
+|----------|---------------|-----------|--------------|
+| Registro de cliente | Formulario con validación y vista previa | Alta | Fase 3 |
+| Lista de clientes | Ver, buscar, filtrar clientes | Alta | Fase 3 |
+| Detalle de préstamo | Ver estado, línea de tiempo de pagos | Alta | Fase 4 |
+| Registro de pago | Marcar cuotas como pagadas | Alta | Fase 5 |
+| Búsqueda | Buscar por nombre, ID, teléfono | Alta | Fase 6 |
+| Login/Registro | Autenticación básica | Alta | Fase 1 |
+| Layout y navegación | Sidebar + encabezado común | Alta | Fase 2 |
+
+### ⚠️ Fase 7 opcional (prioridad media, no bloquea el MVP)
+
+| Funcionalidad | Alcance | Prioridad |
+|---------------|---------|-----------|
+| Dashboard con métricas (`dashboard.html`) | Tarjetas de estadísticas + actividad reciente con conteos | Media |
+
+> **Conciliación con `TAREAS-Vanilla.md`:** la guía v1.0 ubicaba el dashboard como post-MVP y `TAREAS-Vanilla.md` lo define como Fase 7 de prioridad media. Criterio vigente: el dashboard **no es core**; se construye solo si el flujo registro → préstamo → pago → búsqueda ya funciona (Fases 1–6). No bloquea la entrega del MVP.
 
 ### ❌ Fase posterior (después del MVP)
 
 | Funcionalidad | Por qué no va en MVP |
 |---------------|---------------------|
-| Dashboard con métricas | Nice-to-have, no esencial para empezar |
 | Multiidioma | Se puede agregar después, el equipo habla español |
-| Modo oscuro | Cosmético, no funcional |
+| Modo oscuro | Cosmético, no funcional (tema claro fijo lustre/obsidiana) |
 | Reportes y exportación | Los usuarios pueden copiar datos a mano al inicio |
 | Notificaciones push | Complejidad innecesaria para validar la idea |
 | App móvil | Responsive web alcanza para MVP |
@@ -243,13 +275,15 @@ La tarea core es: registrar cliente → crear préstamo → registrar pago → b
 
 ## 7. Cómo trabajar en el proyecto
 
-### Requisitos previos
+### Requisitos previos (sin Node)
 
-1. Instalar Node.js (versión 18 o superior)
-2. Crear cuenta en GitHub
-3. Crear cuenta en Supabase (gratis)
-4. Crear cuenta en Vercel (gratis, con GitHub)
-5. Instalar un editor de código (VS Code recomendado)
+1. Navegador moderno (Chrome, Firefox o Edge actualizado)
+2. VS Code con la extensión Live Server (o equivalente para servir archivos estáticos)
+3. Cuenta en GitHub
+4. Cuenta en Supabase (gratis)
+5. Cuenta en Vercel (gratis, con GitHub) o GitHub Pages para el deploy estático
+
+No se requiere instalar Node.js ni npm.
 
 ### Primeros pasos
 
@@ -258,17 +292,21 @@ La tarea core es: registrar cliente → crear préstamo → registrar pago → b
 git clone https://github.com/TU_USUARIO/credere.git
 cd credere
 
-# 2. Instalar dependencias
-npm install
+# 2. Copiar la base del starter vanilla (no instalar nada)
+# Copiar la carpeta credere-vanilla-starter/ como punto de partida
 
-# 3. Copiar variables de entorno
-cp .env.example .env.local
+# 3. Configurar credenciales de Supabase en js/config.js
+# Editar js/config.js con SUPABASE_URL y SUPABASE_ANON_KEY del panel de Supabase
+# Nunca usar la clave service_role en el frontend
 
-# 4. Agregar tus credenciales de Supabase en .env.local
+# 4. Crear las tablas: ejecutar sql/schema.sql en Supabase SQL Editor
+# Verificar que Row Level Security (RLS) quedó activado
 
-# 5. Correr el proyecto
-npm run dev
+# 5. Servir en local con Live Server (botón "Go Live" en VS Code)
+# No abrir con file:// — los módulos ES y las llamadas a Supabase requieren http://localhost
 ```
+
+Verificación rápida: abrir `login.html`, registrar un usuario, iniciar sesión y dar de alta un cliente.
 
 ### Flujo de trabajo (Git Flow simplificado)
 
@@ -299,23 +337,65 @@ main          ← código funcionando, listo para deploy
    ```
    - Ir a GitHub → crear PR hacia `develop`
    - Pedir review a un compañero
+   - Verificar en la preview estática que el flujo afectado funciona
 
-4. Después de merge, el código se deploya automáticamente
+4. Después de merge, el código se deploya automáticamente como sitio estático
 
 ---
 
 ## 8. Convenciones
 
-### Nomenclatura de archivos
+### Estructura Vanilla del proyecto
 
 ```
-components/
-  ui/
-    button.tsx        ← componente genérico
-    input.tsx
-  clients/
-    client-form.tsx   ← componente específico de clientes
-    client-list.tsx
+index.html            ← redirección o landing (redirige a login.html o dashboard.html)
+login.html            ← inicio de sesión
+register.html         ← registro de usuario
+dashboard.html        ← panel Fase 7 (opcional)
+clientes.html         ← tabla + buscador + formulario de clientes
+prestamos.html        ← lista de préstamos con filtros
+prestamo.html?id=... ← detalle de préstamo + línea de tiempo de pagos
+busqueda.html         ← búsqueda global
+js/
+  config.js           ← SUPABASE_URL + SUPABASE_ANON_KEY (único lugar con claves)
+  supabaseClient.js   ← ÚNICA inicialización del cliente Supabase
+  auth.js             ← login, registro, logout
+  utils.js            ← requireSessionOrRedirect(), toast(), debounce()
+  clients.js          ← listClients(), createClient(), updateClient()
+  loans.js            ← listLoans(), createLoan(), cálculo de overdue
+  payments.js         ← recordPayment(), listPayments()
+  dashboard.js        ← conteos y actividad reciente (Fase 7)
+css/
+  styles.css          ← estilos propios + nav-active + responsive
+sql/
+  schema.sql          ← esquema canónico (fuente ejecutable)
+```
+
+Ejemplo de patrón por módulo (`js/clients.js` — mismo patrón para `loans.js` y `payments.js`):
+
+```js
+import { supabase } from './supabaseClient.js';
+
+export async function listClients(search = '') {
+  let query = supabase.from('clients').select('*').order('created_at', { ascending: false });
+  if (search) query = query.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%,gov_id.ilike.%${search}%`);
+  return query;
+}
+
+export async function createClient(data) {
+  return supabase.from('clients').insert(data).select().single();
+}
+```
+
+Guardia de sesión (`js/utils.js`, uso en cada página protegida):
+
+```js
+import { supabase } from './supabaseClient.js';
+
+export async function requireSessionOrRedirect() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) window.location.href = 'login.html';
+}
 ```
 
 ### Nomenclatura de commits
@@ -353,15 +433,24 @@ fix/fechas-no-se-guardaban
 
 ### Estilos CSS
 
-- Usar **Tailwind CSS** (viene con Next.js)
-- No crear archivos CSS separados除非 es necesario
-- Colores del proyecto definidos en `tailwind.config.ts`:
+- **Tailwind por CDN** en cada página:
+  ```html
+  <script src="https://cdn.tailwindcss.com"></script>
+  ```
+- Estilos propios mínimos en `css/styles.css` (estados `:hover`, `:focus-visible`, responsive).
+- Colores del proyecto (vía configuración inline del CDN o clases propias, no hay `tailwind.config.ts`):
 
-```ts
-colors: {
-  lustre: '#FEFFEF',    // fondo claro
-  obsidian: '#121212',  // oscuro
-  accent: '#B8860B',    // dorado
+```js
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        lustre: '#FEFFEF',    // fondo claro
+        obsidian: '#121212',  // oscuro
+        accent: '#B8860B',    // dorado
+      }
+    }
+  }
 }
 ```
 
@@ -371,19 +460,24 @@ colors: {
 
 | Rol | Responsabilidad | Ejemplo |
 |-----|-----------------|---------|
-| Frontend | Componentes de interfaz, formularios, layouts | Crear el formulario de clientes |
-| Backend | API routes, lógica de negocio, base de datos | Crear endpoint de registro |
-| Fullstack | Ambos cuando la tarea lo requiere | Pantalla completa de préstamo |
+| Frontend | Páginas HTML, formularios, tablas, layouts | Crear `clientes.html` con buscador |
+| Backend | SQL, lógica de datos, base de datos, RLS | Ajustar `sql/schema.sql` y políticas |
+| Fullstack | Módulo JS + página cuando la tarea lo requiere | `loans.js` + `prestamos.html` |
 | UI/UX | Diseño, wireframes, validación visual | Verificar colores y espacios |
 | QA | Testing, encontrar bugs | Probar que el formulario valida bien |
 
-### Distribución sugerida (10 personas)
+### Distribución sugerida (10 personas, rebanadas verticales)
 
-- **2 Frontend** — componentes UI, formularios, layouts
-- **2 Backend** — API routes, base de datos, auth
-- **1 UI/UX** — consistencia visual, validación de diseño
-- **1 QA** — testing, bugs, usabilidad
-- **4 Fullstack** — apoyo donde se necesite
+Para evitar colisiones en Vanilla (sin componentes), cada dúo es dueño de su módulo JS + sus páginas:
+
+- **Dúo Clientes** (2) — `js/clients.js` + `clientes.html` (Fase 3)
+- **Dúo Préstamos/Pagos** (2) — `js/loans.js` + `js/payments.js` + `prestamos.html` + `prestamo.html` (Fases 4–5)
+- **Auth + Búsqueda** (2) — `js/auth.js`, guardia de sesión + `login.html`, `register.html`, `busqueda.html` (Fases 1 y 6)
+- **Layout + Panel** (1) — sidebar, encabezado + `dashboard.html` Fase 7 opcional (Fases 2 y 7)
+- **UI + Base de datos + QA** (2) — `css/styles.css`, `sql/schema.sql`, RLS, pulido y pruebas (Fases 0, 8, 9)
+- **Coordinación + QA final** (1) — integración, flujo registro → login → alta cliente, deploy estático
+
+Detalle de tareas por persona en `TAREAS-Vanilla.md` (sección Resumen por persona).
 
 ---
 
@@ -391,27 +485,29 @@ colors: {
 
 ### ¿Por qué no usamos [otra tecnología]?
 
-Porque para un MVP necesitamos velocidad. Cada tecnología nueva agrega complejidad. Elegimos el stack que resuelve nuestro problema con menos código y menos configuración.
+Porque para un MVP con 10 personas sin experiencia en React necesitamos velocidad de arranque. Vanilla elimina instalación, build y curva de aprendizaje, y cubre todo el flujo core con módulos simples. La seriedad del sistema no depende del framework del frontend: vive en PostgreSQL + RLS + Auth de Supabase, que se mantienen intactos. Si el producto valida, se puede migrar el frontend a un framework sin tocar la base de datos.
 
 ### ¿Cuánto tarda el MVP?
 
-Depende del ritmo del equipo, pero estimamos **2-3 semanas** de desarrollo si trabajamos organizados.
+Depende del ritmo del equipo, pero estimamos **4–5 semanas** siguiendo las Fases 0–9 de `TAREAS-Vanilla.md` (semana 1: starter + login; semanas 2–3: clientes, préstamos, pagos; semana 4: búsqueda + panel opcional; semana 5: pulido y deploy).
 
 ### ¿El MVP se puede deployar gratis?
 
-Sí. Vercel + Supabase tienen free tier suficiente para MVP.
+Sí. Vercel (sitio estático sin build) o GitHub Pages + Supabase tienen free tier suficiente para MVP.
 
 ### ¿Cómo probamos que funciona?
 
 Cada funcionalidad se prueba antes de hacer merge:
-1. El desarrollador prueba en local
+1. El desarrollador prueba en local con Live Server (no con `file://`)
 2. Abre PR y pide review
-3. Un compañero revisa y prueba
+3. Un compañero revisa y prueba el flujo afectado
 4. Si está bien, se hace merge
+
+Flujo de verificación mínimo: registro → login → alta de cliente → crear préstamo → registrar pago → buscar.
 
 ### ¿Qué pasa si hay un bug en producción?
 
-1. Se crea un issue en GitHub con.steps para reproducir
+1. Se crea un issue en GitHub con pasos para reproducir
 2. Se crea una branch `fix/nombre-del-bug`
 3. Se arregla, se prueba, se crea PR
 4. Se hace merge y se deploya automáticamente
@@ -419,6 +515,8 @@ Cada funcionalidad se prueba antes de hacer merge:
 ### ¿Dónde guardamos la documentación?
 
 - Este archivo vive en la raíz del repositorio
+- `TAREAS-Vanilla.md` es la fuente de fases y tareas
+- `Credere-MER-Completo.md` es la fuente del modelo de datos
 - Los PRs describen los cambios
 - Los issues registran bugs y tareas pendientes
 
@@ -429,11 +527,14 @@ Cada funcionalidad se prueba antes de hacer merge:
 | Recurso | URL |
 |---------|-----|
 | Repositorio | (agregar link de GitHub) |
-| Deploy (producción) | (agregar link de Vercel) |
+| Deploy (producción) | (agregar link de Vercel o GitHub Pages) |
 | Supabase Dashboard | (agregar link de Supabase) |
-| Documentación Next.js | https://nextjs.org/docs |
+| MDN Web Docs (HTML/CSS/JS) | https://developer.mozilla.org/ |
+| Supabase JS v2 (`supabase-js`) | https://supabase.com/docs/reference/javascript/introduction |
 | Documentación Supabase | https://supabase.com/docs |
-| Tailwind CSS | https://tailwindcss.com/docs |
+| Tailwind por CDN | https://tailwindcss.com/docs/installation/play-cdn |
+| Tareas Vanilla (interno) | `TAREAS-Vanilla.md` |
+| Modelo de datos (interno) | `Credere-MER-Completo.md` |
 
 ---
 
@@ -441,13 +542,15 @@ Cada funcionalidad se prueba antes de hacer merge:
 
 - [ ] Leer este documento completo
 - [ ] Crear cuentas en GitHub, Supabase, Vercel
-- [ ] Instalar Node.js y VS Code
-- [ ] Clonar el repositorio
-- [ ] Correr el proyecto en local (`npm run dev`)
+- [ ] Instalar VS Code + Live Server (sin Node ni npm)
+- [ ] Clonar el repositorio y copiar la base del starter vanilla
+- [ ] Configurar `js/config.js` con URL + anon key (nunca `service_role`)
+- [ ] Ejecutar `sql/schema.sql` y verificar que RLS está activado
+- [ ] Servir en local con Go Live y probar flujo registro → login → alta cliente
 - [ ] Hacer un commit de prueba y crear PR
 - [ ] Presentarse en el canal del equipo
 
 ---
 
-*Última actualización: Agosto 2026*
+*Última actualización: Septiembre 2026 — v1.1 Vanilla (reemplaza stack Next.js por HTML + JS Vanilla + Tailwind CDN; backend Supabase sin cambios)*
 *Documentación viva — actualizar cuando cambien decisiones técnicas*
