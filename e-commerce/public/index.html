@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechHardware - Tienda de Computación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0070ba;
+      --primary-hover: #005691;
+      --mp-blue: #009ee3;
+      --mp-blue-hover: #007eb7;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+    /* Navbar fija superior */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .logo span { color: var(--primary); }
+
+    /* Botón flotante para abrir el Carrito */
+    .btn-cart-open {
+      position: relative;
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+    .btn-cart-open:hover { background: #334155; }
+    .btn-cart-open:active { transform: scale(0.98); }
+    .badge {
+      background: var(--mp-blue);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 9999px;
+      padding: 2px 7px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* Grilla de productos */
+    main { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+    .catalogo {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    }
+    .img-container {
+      width: 100%;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .img-container img { width: 100%; height: 100%; object-fit: cover; }
+    .categoria { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+    .card h3 { font-size: 0.95rem; font-weight: 600; line-height: 1.4; color: var(--text); min-height: 40px; }
+    .precio { font-size: 1.35rem; font-weight: 700; color: #0284c7; margin: 12px 0; }
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.2s ease;
+    }
+    .btn-add:hover { background: var(--primary-hover); }
+
+    /* Drawer / Lateral del Carrito */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 100;
+    }
+    .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 100%;
+      max-width: 400px;
+      height: 100%;
+      background: var(--card-bg);
+      box-shadow: -4px 0 25px rgba(0,0,0,0.15);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cart-drawer.active { right: 0; }
+
+    .drawer-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-header h2 { font-size: 1.15rem; font-weight: 600; }
+    .btn-close {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .item-carrito {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .item-carrito img {
+      width: 55px;
+      height: 55px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #f1f5f9;
+    }
+    .item-details { flex: 1; }
+    .item-details strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .item-details span { font-size: 13px; font-weight: 600; color: #0284c7; }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .btn-qty {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .btn-qty:hover { background: #e2e8f0; }
+
+    .drawer-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .total-row span { font-size: 14px; color: var(--muted); }
+    .total-row strong { font-size: 1.4rem; color: var(--text); }
+    .btn-pagar {
+      background: var(--mp-blue);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+    .btn-pagar:hover { background: var(--mp-blue-hover); }
+    .btn-pagar:disabled { background: #93c5fd; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <header>
+    <div class="nav-wrapper">
+      <div class="logo">
+        Tech<span>Hardware</span>
+      </div>
+      <button class="btn-cart-open" onclick="toggleCart(true)">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span>Mi Carrito</span>
+        <span class="badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Catálogo Principal -->
+  <main>
+    <div class="catalogo" id="catalogo"></div>
+  </main>
+
+  <!-- Overlay de Fondo Oscuro -->
+  <div class="drawer-overlay" id="overlay" onclick="toggleCart(false)"></div>
+
+  <!-- Carrito Lateral Desplegable -->
+  <aside class="cart-drawer" id="drawer">
+    <div class="drawer-header">
+      <h2>Tu Pedido</h2>
+      <button class="btn-close" onclick="toggleCart(false)">✕</button>
+    </div>
+    
+    <div class="drawer-body" id="items-carrito">
+      <p style="color: var(--muted); text-align: center; margin-top: 40px; font-size: 14px;">El carrito está vacío</p>
+    </div>
+
+    <div class="drawer-footer" id="drawer-footer" style="display: none;">
+      <div class="total-row">
+        <span>Total de la orden:</span>
+        <strong id="total">$0</strong>
+      </div>
+      <button class="btn-pagar" id="btn-pagar" onclick="pagar()">
+        Continuar a Mercado Pago
+      </button>
+    </div>
+  </aside>
+
+  <script>
+    const productos = [
+      {
+        id: 1,
+        categoria: "Placas de Video",
+        nombre: "NVIDIA GeForce RTX 4060 8GB",
+        precio: 380000,
+        imagen: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 2,
+        categoria: "Procesadores",
+        nombre: "AMD Ryzen 5 5600 4.4GHz AM4",
+        precio: 185000,
+        imagen: "https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 3,
+        categoria: "Memorias RAM",
+        nombre: "Kingston Fury Beast 16GB DDR4",
+        precio: 50000,
+        imagen: "https://images.unsplash.com/photo-1562976540-1502c2145186?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 4,
+        categoria: "Almacenamiento",
+        nombre: "SSD Kingston NV2 1TB NVMe PCIe",
+        precio: 85000,
+        imagen: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 5,
+        categoria: "Fuentes",
+        nombre: "Fuente Corsair 650W 80 Plus",
+        precio: 75000,
+        imagen: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 6,
+        categoria: "Motherboards",
+        nombre: "ASUS TUF Gaming B550-PLUS",
+        precio: 160000,
+        imagen: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 7,
+        categoria: "Gabinetes",
+        nombre: "Gabinete Mid Tower + 4 Fans RGB",
+        precio: 95000,
+        imagen: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=500&auto=format&fit=crop&q=60"
+      },
+      {
+        id: 8,
+        categoria: "Monitores",
+        nombre: "Monitor Gamer 24' IPS 165Hz",
+        precio: 210000,
+        imagen: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=60"
+      }
+    ];
+
+    let carrito = [];
+
+    function renderizarCatalogo() {
+      const contenedor = document.getElementById('catalogo');
+      contenedor.innerHTML = productos.map(prod => `
+        <div class="card">
+          <div>
+            <div class="img-container">
+              <img src="${prod.imagen}" alt="${prod.nombre}">
+            </div>
+            <div class="categoria">${prod.categoria}</div>
+            <h3>${prod.nombre}</h3>
+            <div class="precio">$${prod.precio.toLocaleString('es-AR')}</div>
+          </div>
+          <button class="btn-add" onclick="agregarAlCarrito(${prod.id})">Agregar al Carrito</button>
+        </div>
+      `).join('');
+    }
+
+    function toggleCart(abrir) {
+      document.getElementById('drawer').classList.toggle('active', abrir);
+      document.getElementById('overlay').classList.toggle('active', abrir);
+    }
+
+    function agregarAlCarrito(id) {
+      const prod = productos.find(p => p.id === id);
+      const existe = carrito.find(item => item.id === id);
+
+      if (existe) {
+        existe.cantidad += 1;
+      } else {
+        carrito.push({ ...prod, cantidad: 1 });
+      }
+      actualizarCarrito();
+      toggleCart(true); // Abre el drawer automáticamente para mostrar la acción
+    }
+
+    function cambiarCantidad(id, delta) {
+      const item = carrito.find(p => p.id === id);
+      if (!item) return;
+
+      item.cantidad += delta;
+      if (item.cantidad <= 0) {
+        carrito = carrito.filter(p => p.id !== id);
+      }
+      actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+      const contenedor = document.getElementById('items-carrito');
+      const footer = document.getElementById('drawer-footer');
+      const badge = document.getElementById('cart-count');
+      const totalEl = document.getElementById('total');
+
+      const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+      badge.innerText = totalItems;
+
+      if (carrito.length === 0) {
+        contenedor.innerHTML = '<p style="color: var(--muted); text-align: center; margin-top: 40px; font-size: 14px;">El carrito está vacío</p>';
+        footer.style.display = 'none';
+        return;
+      }
+
+      let total = 0;
+      contenedor.innerHTML = carrito.map(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        return `
+          <div class="item-carrito">
+            <img src="${item.imagen}" alt="${item.nombre}">
+            <div class="item-details">
+              <strong>${item.nombre}</strong>
+              <span>$${subtotal.toLocaleString('es-AR')}</span>
+              <div class="qty-controls">
+                <button class="btn-qty" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                <small style="font-weight: 600;">${item.cantidad}</small>
+                <button class="btn-qty" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      totalEl.innerText = '$' + total.toLocaleString('es-AR');
+      footer.style.display = 'block';
+    }
+
+    async function pagar() {
+      const btn = document.getElementById('btn-pagar');
+      btn.innerText = "Conectando con Mercado Pago...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/crear-preferencia', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: carrito })
+        });
+
+        const data = await res.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+        } else {
+          alert('Hubo un error al generar la orden.');
+          btn.disabled = false;
+          btn.innerText = "Continuar a Mercado Pago";
+        }
+      } catch (err) {
+        alert('Error de conexión con el servidor.');
+        btn.disabled = false;
+        btn.innerText = "Continuar a Mercado Pago";
+      }
+    }
+
+    renderizarCatalogo();
+  </script>
+</body>
+</html>
