@@ -11,3 +11,6 @@ public class TiendaLibrosApplication {
 	}
 
 }
+/*cd
+ * "Java\Proyecto Tienda de Libros (Clase6)\Tienda_Libros"
+ * .\mvnw.cmd spring-boot:run */
