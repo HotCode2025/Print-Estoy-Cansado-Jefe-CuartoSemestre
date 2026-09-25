@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credere - Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased h-screen flex overflow-hidden">
+    
+    <div class="app flex h-full w-full flex-col md:flex-row">
+        
+        <aside class="sidebar w-full md:w-64 bg-white border-r border-gray-200 flex flex-col justify-between">
+            <div>
+                <div class="p-6">
+                    <h1 class="text-2xl font-bold" style="font-family: 'Georgia', serif; color: #1a1a1a;">Credere</h1>
+                </div>
+                <nav class="mt-2">
+                    <a href="index.html" class="nav-item nav-active flex items-center py-3 px-6 text-gray-700 hover:bg-gray-100 transition-colors border-l-4 border-yellow-500 bg-gray-50" aria-current="page">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        Panel
+                    </a>
+                    <a href="clientes.html" class="nav-item flex items-center py-3 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors border-l-4 border-transparent hover:border-gray-300">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        Clientes
+                    </a>
+                    <a href="prestamos.html" class="nav-item flex items-center py-3 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors border-l-4 border-transparent hover:border-gray-300">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Préstamos
+                    </a>
+                    <a href="busqueda.html" class="nav-item flex items-center py-3 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors border-l-4 border-transparent hover:border-gray-300">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Búsqueda
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200">
+                <button id="logoutBtn" class="flex items-center text-red-600 hover:text-red-800 transition-colors w-full text-left">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content flex-1 flex flex-col h-full bg-gray-50 overflow-y-auto">
+            
+            <header class="bg-white shadow-sm px-8 py-4 flex justify-between items-center z-10 sticky top-0">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800" id="greeting">¡Hola, Usuario!</h2>
+                    <p class="text-sm text-gray-500" id="currentDate">Cargando fecha...</p>
+                </div>
+                <div>
+                    <button id="btnNuevoPrestamo" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm transition-colors font-medium">
+                        + Nuevo Préstamo
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Total Clientes</h3>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-md">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">124</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Préstamos Activos</h3>
+                            <div class="p-2 bg-green-50 text-green-600 rounded-md">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">45</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Capital Prestado</h3>
+                            <div class="p-2 bg-yellow-50 text-yellow-600 rounded-md">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800">$ 45,200</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-800">Actividad Reciente</h3>
+                        <a href="prestamos.html" class="text-sm text-yellow-600 hover:text-yellow-700 font-medium">Ver todo</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-600">
+                            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="px-6 py-3 font-medium">Cliente</th>
+                                    <th class="px-6 py-3 font-medium">Monto</th>
+                                    <th class="px-6 py-3 font-medium">Fecha</th>
+                                    <th class="px-6 py-3 font-medium">Estado</th>
+                                    <th class="px-6 py-3 font-medium">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">Juan Pérez</td>
+                                    <td class="px-6 py-4">$ 1,500</td>
+                                    <td class="px-6 py-4">24 Sep, 2026</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Activo
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-gray-400 hover:text-yellow-600 transition-colors">Ver detalle</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">María García</td>
+                                    <td class="px-6 py-4">$ 800</td>
+                                    <td class="px-6 py-4">23 Sep, 2026</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Pendiente
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-gray-400 hover:text-yellow-600 transition-colors">Ver detalle</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">Carlos López</td>
+                                    <td class="px-6 py-4">$ 2,000</td>
+                                    <td class="px-6 py-4">20 Sep, 2026</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Atrasado
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-gray-400 hover:text-yellow-600 transition-colors">Ver detalle</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="modalPrestamo" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Nuevo Préstamo</h3>
+                <button id="btnCerrarModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formPrestamo" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                        <select class="w-full px-3 py-2 rounded-md border border-gray-200 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none bg-white">
+                            <option>Seleccionar cliente...</option>
+                            <option>Juan Pérez</option>
+                            <option>María García</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto ($)</label>
+                        <input type="number" required class="w-full px-3 py-2 rounded-md border border-gray-200 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none">
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" id="btnGuardar" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors font-medium border border-gray-200">
+                        Guardar
+                    </button>
+                    <button type="submit" id="btnGuardarOtro" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors font-medium shadow-sm">
+                        Guardar y agregar otro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-4 py-3 rounded-md shadow-lg transform transition-transform translate-y-20 opacity-0 flex items-center">
+        <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toastMsg">Acción exitosa</span>
+    </div>
+
+    <script>
+        if (!localStorage.getItem('credere_session')) {
+            window.location.href = 'login.html';
+        }
+
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const currentDate = new Date().toLocaleDateString('es-ES', dateOptions);
+        document.getElementById('currentDate').textContent = currentDate.charAt(0).toUpperCase() + currentDate.slice(1);
+        
+        const sessionEmail = localStorage.getItem('credere_session');
+        if (sessionEmail) {
+            document.getElementById('greeting').textContent = '¡Hola, ' + sessionEmail.split('@')[0] + '!';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('credere_session');
+            window.location.href = 'login.html';
+        });
+
+        const modal = document.getElementById('modalPrestamo');
+        const form = document.getElementById('formPrestamo');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        function showToast(msg) {
+            toastMsg.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        document.getElementById('btnNuevoPrestamo').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+
+        document.getElementById('btnCerrarModal').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            form.reset();
+        });
+
+        document.getElementById('btnGuardar').addEventListener('click', (e) => {
+            if (form.checkValidity()) {
+                e.preventDefault();
+                showToast('esto no funciona todavia (BETA)');
+                modal.classList.add('hidden');
+                form.reset();
+            } else {
+                form.reportValidity();
+            }
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showToast('esto no funciona todavia (BETA)');
+            form.reset();
+        });
+    </script>
+</body>
+</html>
