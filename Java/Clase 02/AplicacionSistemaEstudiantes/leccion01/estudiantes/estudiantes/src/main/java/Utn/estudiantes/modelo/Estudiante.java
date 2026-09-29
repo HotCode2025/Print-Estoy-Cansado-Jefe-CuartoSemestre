@@ -7,10 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 
-@Entity
-// boilerplate - Código Repetitivo
+@Entity// boilerplate - Código Repetitivo
 @Data // Crea los métodos get y set
 @NoArgsConstructor // Constructor vacío
 @AllArgsConstructor // Constructor con todos los argumentos
