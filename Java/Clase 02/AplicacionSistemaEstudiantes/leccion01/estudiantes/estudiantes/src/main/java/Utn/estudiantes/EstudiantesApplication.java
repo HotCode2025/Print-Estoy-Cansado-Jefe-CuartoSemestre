@@ -43,7 +43,7 @@ public class EstudiantesApplication implements CommandLineRunner {
 	}
 
 	private void mostrarMenu(){
-		logger.info(nl);
+		//logger.info(nl);
 		logger.info("""
 				****** Sistema de Estudiantes ******
 				1. Listar Estudiantes
@@ -70,7 +70,9 @@ public class EstudiantesApplication implements CommandLineRunner {
 				Estudiantes2022 estudiante =
 						estudianteServicio.buscarEstudiantePorId(idEstudainte);
 				if(estudiante != null)
-					logger.info("Estudiante NO encontrado: "+ estudiante +nl);
+					logger.info("Estudiante encontrado: "+ estudiante +nl);
+				else
+					logger.info("Estudiante NO encontrado: "+idEstudainte + nl);
 			}
 			case 3 -> { // Agregar estudiante
 				logger.info("Agregar estudiante: "+nl);
@@ -92,9 +94,48 @@ public class EstudiantesApplication implements CommandLineRunner {
 				logger.info("estudiante agregad: "+estudiante+nl);
 			}
 			case 4 -> { // modificar estudiante
-
-
+			logger.info("Modificar estudiante: "+nl);
+			logger.info("Ingrese el id estudiante: ");
+			var idEstudiante = Integer.parseInt(consola.nextLine());
+			// buscamos el estudiante a modificar
+				Estudiantes2022 estudiante = estudianteServicio.buscarEstudiantePorId((idEstudiante));
+				if (estudiante != null){
+					logger.info("Nombre: ");
+					var nombre = consola.nextLine();
+					logger.info("Apellido: ");
+					var apellido = consola.nextLine();
+					logger.info("Telefono: ");
+					var telefono = consola.nextLine();
+					logger.info("Email: ");
+					var email = consola.nextLine();
+					estudiante.setNombre(nombre);
+					estudiante.setApellido(apellido);
+					estudiante.setTelefono(telefono);
+					estudiante.setEmail(email);
+					estudianteServicio.guardarEstudiante(estudiante);
+					logger.info("Estudiante modificado: "+estudiante+nl);
+				}
+				else
+					logger.info("Estudiante NO encontrado con el id: "+ idEstudiante+nl);
 			}
+			case 5 -> { //Eliminar estudiante
+					logger.info("Eliminar estudiante: "+nl);
+					logger.info("Digite el id estudiante: ");
+					var idEstudiante = Integer.parseInt(consola.nextLine());
+					//Buscamos el id estudiante a eliminar
+					var estudiante = estudianteServicio.buscarEstudiantePorId((idEstudiante));
+					if (estudiante != null){
+						estudianteServicio.eliminarEstudiante(estudiante);
+						logger.info("estudiante eliminado: "+estudiante+nl);
+					}
+					else
+						logger.info("Estudiante NO encontrado con el id: "+idEstudiante+nl);
+			}
+			case 6 -> {
+				logger.info("Hasta pronto!"+nl+nl);
+				salir = true;
+			}
+			default -> logger.info("Opción no reconocida: "+ opcion+nl);
 		} // Fin switch
 		return salir;
 	}
