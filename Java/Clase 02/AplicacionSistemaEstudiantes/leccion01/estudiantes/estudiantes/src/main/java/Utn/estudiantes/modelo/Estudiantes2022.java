@@ -1,0 +1,25 @@
+package Utn.estudiantes.modelo;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import jakarta.persistence.Id;
+
+@Entity// boilerplate - Código Repetitivo
+@Data // Crea los métodos get y set
+@NoArgsConstructor // Constructor vacío
+@AllArgsConstructor // Constructor con todos los argumentos
+@ToString
+public class Estudiantes2022 {
+    @Id // Identificación unica
+    @GeneratedValue (strategy = GenerationType.IDENTITY) // Como se generará el ID
+    private Integer idestudiantes2022;
+    private String nombre;
+    private String apellido;
+    private String telefono;
+    private String email;
+}
