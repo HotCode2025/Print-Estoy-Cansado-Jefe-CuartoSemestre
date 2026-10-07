@@ -2,11 +2,11 @@ import pygame
 import sys
 import random
 import os
-from personaje import Personaje, Enemigo, Explosion
+from personaje import Personaje, Enemigo, EnemigoFuerte, Explosion
 from constantes import (
     SCREEN_WIDTH, SCREEN_HEIGHT, ASSETS_PATH,
-    SCROLL_SPEED, PLAYER_SPEED, ENEMY_SPAWN_CHANCE,
-    POINTS_PER_KILL, LEVEL_UP_THRESHOLD
+    SCROLL_SPEED, PLAYER_SPEED, ENEMY_SPAWN_CHANCE, STRONG_ENEMY_SPAWN_CHANCE,
+    LEVEL_UP_THRESHOLD
 )
 
 BACKGROUNDS = [
@@ -97,10 +97,17 @@ def main():
 
     personaje = Personaje(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
     enemigos = []
+    balas_enemigas = []
     explosiones = []
     puntos = 0
     nivel = 1
     disparo_cooldown = 0
+    
+    estado_transicion = False
+    alpha_transicion = 0
+    
+    fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    fade_surface.fill((255, 255, 255))
 
     font = pygame.font.Font(None, 36)
     clock = pygame.time.Clock()
@@ -125,6 +132,7 @@ def main():
 
         personaje.mover(dx, dy)
         personaje.shape.clamp_ip(screen.get_rect())
+        personaje.update_hitbox()
 
         disparo_cooldown -= 1
         if keys[pygame.K_SPACE] and disparo_cooldown <= 0:
@@ -135,45 +143,92 @@ def main():
         personaje.lasers = [l for l in personaje.lasers if l.rect.bottom > 0]
 
         for enemigo in enemigos[:]:
-            enemigo.mover()
             if enemigo.rect.top > SCREEN_HEIGHT:
                 enemigos.remove(enemigo)
                 continue
 
+            laser_impacto = False
             for laser in personaje.lasers[:]:
                 if enemigo.rect.colliderect(laser.rect):
-                    explosiones.append(Explosion(enemigo.rect.centerx, enemigo.rect.centery))
-                    enemigos.remove(enemigo)
                     personaje.lasers.remove(laser)
-                    sonido_explosion.play()
-                    puntos += POINTS_PER_KILL
+                    laser_impacto = True
                     break
 
-            if enemigo in enemigos and enemigo.rect.colliderect(personaje.shape):
+            if laser_impacto:
+                if enemigo.recibir_dano():
+                    explosiones.append(Explosion(enemigo.rect.centerx, enemigo.rect.centery))
+                    enemigos.remove(enemigo)
+                    sonido_explosion.play()
+                    puntos += enemigo.puntos
+                    continue
+
+            if enemigo.rect.colliderect(personaje.hitbox):
                 explosiones.append(Explosion(enemigo.rect.centerx, enemigo.rect.centery))
                 enemigos.remove(enemigo)
+                sonido_explosion.play()
+                if not personaje.recibir_dano():
+                    running = False
+                continue
+
+            nuevas_balas = enemigo.update(personaje.shape.centerx, personaje.shape.centery)
+            if nuevas_balas:
+                balas_enemigas.extend(nuevas_balas)
+
+                    
+        for bala in balas_enemigas[:]:
+            bala.mover()
+            if bala.rect.top > SCREEN_HEIGHT or bala.rect.bottom < 0 or bala.rect.left > SCREEN_WIDTH or bala.rect.right < 0:
+                balas_enemigas.remove(bala)
+                continue
+            if bala.rect.colliderect(personaje.hitbox):
+                balas_enemigas.remove(bala)
+                explosiones.append(Explosion(personaje.shape.centerx, personaje.shape.top))
                 if not personaje.recibir_dano():
                     running = False
 
         if random.random() < ENEMY_SPAWN_CHANCE:
             x = random.randint(0, SCREEN_WIDTH - 76)
             enemigos.append(Enemigo(x, -80))
+            
+        if random.random() < STRONG_ENEMY_SPAWN_CHANCE:
+            x = random.randint(0, SCREEN_WIDTH - 91)
+            enemigos.append(EnemigoFuerte(x, -100))
 
         explosiones = [e for e in explosiones if e.actualizar()]
 
-        if puntos >= LEVEL_UP_THRESHOLD:
+        if puntos >= LEVEL_UP_THRESHOLD and not estado_transicion:
             nivel += 1
             puntos = 0
-            fondo_index = (fondo_index + 1) % len(BACKGROUNDS)
-            fondo_surface = cargar_fondo(BACKGROUNDS[fondo_index])
-            bg = ScrollingBackground(fondo_surface)
-
+            estado_transicion = True
+            alpha_transicion = 0
+            
         bg.update()
         bg.draw(screen)
 
+        if estado_transicion:
+            alpha_transicion += 5
+            if alpha_transicion >= 255:
+                fondo_index = (fondo_index + 1) % len(BACKGROUNDS)
+                fondo_surface = cargar_fondo(BACKGROUNDS[fondo_index])
+                bg = ScrollingBackground(fondo_surface)
+                estado_transicion = False
+            else:
+                fade_surface.set_alpha(alpha_transicion)
+                screen.blit(fade_surface, (0, 0))
+        else:
+            if alpha_transicion > 0:
+                alpha_transicion -= 5
+                fade_surface.set_alpha(alpha_transicion)
+                screen.blit(fade_surface, (0, 0))
+
         personaje.dibujar(screen)
+        # Dibujar hitbox debug (opcional, pero ayuda a entender que está ahí)
+        # pygame.draw.rect(screen, (255, 255, 0), personaje.hitbox, 1)
+        
         for enemigo in enemigos:
             enemigo.dibujar(screen)
+        for bala in balas_enemigas:
+            bala.dibujar(screen)
         for explosion in explosiones:
             explosion.dibujar(screen)
 
