@@ -1,23 +1,24 @@
 import pygame
-import os  # proporciona funcionalidades para interactuar con el sistema
-from constantes import ASSETS_PATH
+import os
+from constantes import ASSETS_PATH, LASER_SPEED, ENEMY_SPEED
+
 
 class Personaje:
+    PLAYER_SIZE = (90, 76)
+
     def __init__(self, x, y):
-        # Construye la ruta completa a la imagen del personaje
-        self.image = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'Speeder.png'))
-        self.image = pygame.transform.scale(self.image, (95, 95))
+        raw = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'Player 119x100.png')).convert_alpha()
+        self.image = pygame.transform.scale(raw, self.PLAYER_SIZE)
         self.shape = self.image.get_rect(center=(x, y))
         self.lasers = []
-        self.energia = 100  # Barra de energía inicial
+        self.energia = 100
 
     def mover(self, dx, dy):
         self.shape.x += dx
         self.shape.y += dy
 
     def lanzar_laser(self):
-        laser = Laser(self.shape.centerx, self.shape.top)
-        self.lasers.append(laser)
+        self.lasers.append(Laser(self.shape.centerx, self.shape.top))
 
     def recibir_dano(self):
         self.energia -= 10
@@ -32,56 +33,69 @@ class Personaje:
             laser.dibujar(screen)
             laser.mover()
 
-        # Dibujar la barra de energía
-        pygame.draw.rect(screen, (255, 0, 0), (10, 10, 100, 10))  # Barra de fondo
-        pygame.draw.rect(screen, (0, 255, 0), (10, 10, self.energia, 10))  # Barra de energía
+        barra_fondo = pygame.Rect(10, 10, 100, 10)
+        barra_vida = pygame.Rect(10, 10, self.energia, 10)
+        pygame.draw.rect(screen, (180, 30, 30), barra_fondo)
+        pygame.draw.rect(screen, (50, 220, 80), barra_vida)
+
 
 class Enemigo:
+    ENEMY_SIZE = (76, 64)
+
     def __init__(self, x, y):
-        # Construye la ruta completa a la imagen del enemigo
-        self.image = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'enemigo1.png'))
-        self.image = pygame.transform.scale(self.image, (80, 80))
+        raw = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'Enemy 119x100.png')).convert_alpha()
+        self.image = pygame.transform.scale(raw, self.ENEMY_SIZE)
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def mover(self):
-        self.rect.y += 5  # Velocidad de movimiento del enemigo
+        self.rect.y += ENEMY_SPEED
 
     def dibujar(self, screen):
         screen.blit(self.image, self.rect.topleft)
 
+
 class Laser:
+    LASER_SIZE = (16, 16)
+
     def __init__(self, x, y):
-        # Construye la ruta completa a la imagen del láser
-        self.image = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'lase1.png'))
+        raw = pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'bullets', 'Player-Bullet.png')).convert_alpha()
+        self.image = pygame.transform.scale(raw, self.LASER_SIZE)
         self.rect = self.image.get_rect(center=(x, y))
 
     def mover(self):
-        self.rect.y -= 10  # Velocidad del láser
+        self.rect.y -= LASER_SPEED
 
     def dibujar(self, screen):
         screen.blit(self.image, self.rect.topleft)
 
+
 class Explosion:
+    FRAME_COUNT = 9
+    FRAMES_PER_IMAGE = 4
+    EXPLOSION_SIZE = (96, 96)
+
     def __init__(self, x, y):
-        # Construye la ruta completa a las imágenes de la explosión
-        self.images = [pygame.image.load(os.path.join(ASSETS_PATH, 'images', f'regularExplosion0{i:02d}.png')) for i in range(9)]
-        self.index = 0  # Índice para la animación
-        self.image = self.images[self.index]  # Imagen actual
-        self.rect = self.image.get_rect(center=(x, y))  # Rectángulo de la imagen
-        self.frame_rate = 0  # Contador de frames para la animación
-        self.max_frames = 20  # Frames por imagen
+        self.images = [
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(ASSETS_PATH, 'images', 'explosion', f'{i}.png')).convert_alpha(),
+                self.EXPLOSION_SIZE
+            )
+            for i in range(1, self.FRAME_COUNT + 1)
+        ]
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect(center=(x, y))
+        self.frame_timer = 0
 
     def actualizar(self):
-        # Actualiza la animación
-        self.frame_rate += 1
-        if self.frame_rate >= self.max_frames:
-            self.frame_rate = 0
+        self.frame_timer += 1
+        if self.frame_timer >= self.FRAMES_PER_IMAGE:
+            self.frame_timer = 0
             self.index += 1
             if self.index >= len(self.images):
-                return False  # Termina la animación si se han mostrado todas las imágenes
+                return False
             self.image = self.images[self.index]
         return True
 
     def dibujar(self, screen):
-        # Dibuja la imagen en la pantalla
         screen.blit(self.image, self.rect.topleft)

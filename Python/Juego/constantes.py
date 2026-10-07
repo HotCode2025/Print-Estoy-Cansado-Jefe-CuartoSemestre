@@ -1,11 +1,15 @@
 import os
 
-# Dimensiones de la pantalla
-SCREEN_WIDTH = 1700
-SCREEN_HEIGHT = 1000
+BASE_DIR = os.path.dirname(__file__)
+ASSETS_PATH = os.path.join(BASE_DIR, 'assets')
 
-# Colores
-COLOR_LASER = (0, 0, 255)  # Azul
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 768
 
-# Ruta a los assets
-ASSETS_PATH = os.path.join(os.path.dirname(__file__), 'assets_1')
+SCROLL_SPEED = 3
+ENEMY_SPEED = 4
+LASER_SPEED = 14
+PLAYER_SPEED = 6
+ENEMY_SPAWN_CHANCE = 0.018
+POINTS_PER_KILL = 10
+LEVEL_UP_THRESHOLD = 250
