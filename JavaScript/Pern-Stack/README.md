@@ -46,7 +46,3 @@ Backend Express + PostgreSQL con CRUD de tareas. Sirve para la Clase 06 (6.1–6
 - [ ] `GET /` responde 200
 - [ ] `POST /api/tareas` crea y devuelve la fila con id
 - [ ] `GET /api/tareas/:id` de un id inexistente devuelve 404
-
-## Siguiente paso
-
-Probar el CRUD contra `pern_db` local antes del push. El push a `main` lo avisa el equipo.
