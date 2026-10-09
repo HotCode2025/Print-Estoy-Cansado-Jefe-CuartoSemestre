@@ -33,14 +33,12 @@ Backend Express + PostgreSQL con CRUD de tareas. Sirve para la Clase 06 (6.1–6
 
 ### Endpoints
 
-| Método | Ruta | Respuesta |
-|--------|------|-----------|
-| GET | `/` | Mensaje de bienvenida |
-| GET | `/api/tareas` | Lista ordenada por id |
-| GET | `/api/tareas/:id` | Una tarea o 404 |
-| POST | `/api/tareas` | Crea (`titulo` requerido) o 400, devuelve 201 |
-| PUT | `/api/tareas/:id` | Actualiza parcial o 404 |
-| DELETE | `/api/tareas/:id` | Borra (204) o 404 |
+- **GET `/`:** mensaje de bienvenida.
+- **GET `/api/tareas`:** lista ordenada por id.
+- **GET `/api/tareas/:id`:** una tarea o 404.
+- **POST `/api/tareas`:** crea (`titulo` requerido) o 400, devuelve 201.
+- **PUT `/api/tareas/:id`:** actualiza parcial o 404.
+- **DELETE `/api/tareas/:id`:** borra (204) o 404.
 
 ## Checklist
 
