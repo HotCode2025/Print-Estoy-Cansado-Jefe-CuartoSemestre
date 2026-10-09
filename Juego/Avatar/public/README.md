@@ -185,3 +185,20 @@ La sección debe ser accesible sin interferir con la jugabilidad.
 - Ponzina Lautaro
 - Nicolás Veloz
 - Sat Emir
+
+---
+
+## Tarea GitHub: `fatal: not a git repository`
+
+**Por qué ocurre:** el comando `git` se ejecutó en una carpeta que no es un repositorio (no tiene `.git`). Causas típicas: estás parado en otra carpeta, la ruta del `cd` quedó mal, o el proyecto nunca se clonó/inició.
+
+**Solución:** comprobar dónde estás y moverte al repo, o crearlo:
+
+```bash
+git rev-parse --is-inside-work-tree   # tiene que decir "true"
+cd "D:\UTN Cuarto Semestre\Print-Estoy-Cansado-Jefe-CuartoSemestre"  # ir al repo
+# si el proyecto no existe aún:
+git clone <url-del-repo>
+# si es un proyecto nuevo sin git:
+git init
+```
