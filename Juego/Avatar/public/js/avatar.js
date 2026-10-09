@@ -26,18 +26,18 @@ class Personaje {
 
     cartaHTML() {
         const nombreHtml = this.nombreImg
-            ? '<img src="' + this.nombreImg + '" alt="' + this.nombre + '" class="carta-nombre-img">'
-            : '<span class="carta-nombre-img carta-nombre-texto">' + this.nombre + "</span>"
+            ? `<img src="${this.nombreImg}" alt="${this.nombre}" class="carta-nombre-img">`
+            : `<span class="carta-nombre-img carta-nombre-texto">${this.nombre}</span>`
         const estiloFondo = this.imagen && this.claseCss.split(" ").includes("carta-personalizada")
-            ? ' style="background-image:url(' + this.imagen + ')"'
+            ? ` style="background-image:url(${this.imagen})"`
             : ""
-        return '<label class="carta ' + this.claseCss + '"' + estiloFondo + ">" +
-            '<input type="radio" name="personaje" id="' + this.id + '" value="' + this.id + '">' +
-            emblemaSVG(this.emblema) +
-            nombreHtml +
-            '<span class="carta-elemento">' + this.elemento + "</span>" +
-            '<span class="carta-seleccion">ELEGIDO</span>' +
-            "</label>"
+        return `<label class="carta ${this.claseCss}"${estiloFondo}>` +
+            `<input type="radio" name="personaje" id="${this.id}" value="${this.id}">` +
+            `${emblemaSVG(this.emblema)}` +
+            `${nombreHtml}` +
+            `<span class="carta-elemento">${this.elemento}</span>` +
+            `<span class="carta-seleccion">ELEGIDO</span>` +
+            `</label>`
     }
 }
 
@@ -280,13 +280,17 @@ function iniciarJuego() {
 }
 
 // Dibujar las cartas de selección desde el registro PERSONAJES.
-// Soporta una cantidad ilimitada de personajes sin cambiar este código.
+// Render dinámico con forEach y templates literales: por cada personaje
+// se concatena su carta al contenedor con innerHTML +=.
 function renderSeleccion() {
     const contenedor = document.getElementById("cartas-personajes")
     if (!contenedor) {
         return
     }
-    contenedor.innerHTML = PERSONAJES.map(function (p) { return p.cartaHTML() }).join("")
+    contenedor.innerHTML = ""
+    PERSONAJES.forEach(function (p) {
+        contenedor.innerHTML += p.cartaHTML()
+    })
     configurarInclinacionCartas()
     actualizarEstadoFormulario()
 }
