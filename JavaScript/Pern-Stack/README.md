@@ -1,6 +1,6 @@
-# PERN Stack — Clases 06 y 07: tareas y autenticación
+# PERN Stack — Clases 06, 07 y 08: tareas, autenticación y middleware
 
-Backend Express + PostgreSQL con CRUD de tareas y registro de usuarios. Clase 06 (6.1–6.6): conexión con Pool de `pg`, tabla `tareas` y endpoints con `RETURNING *` y manejo 404. Clase 07 (7.1–7.4): tabla `users`, passwords con `bcrypt`, token JWT en cookie httpOnly.
+Backend Express + PostgreSQL con CRUD de tareas y registro de usuarios. Clase 06 (6.1–6.6): conexión con Pool de `pg`, tabla `tareas` y endpoints con `RETURNING *` y manejo 404. Clase 07 (7.1–7.4): tabla `users`, passwords con `bcrypt`, token JWT en cookie httpOnly. Clase 08 (8.1): middleware que verifica la cookie y protege rutas.
 
 ## Ruta rápida
 
@@ -26,6 +26,7 @@ Backend Express + PostgreSQL con CRUD de tareas y registro de usuarios. Clase 06
 ## Detalles
 
 - **Conexión:** `src/db.js` con `Pool` de `pg`, lee de `src/config.js`.
+- **Middleware:** `src/middlewares/auth.middleware.js` verifica la cookie `token` (401 si falta o es inválido) y protege `GET /api/profile`.
 - **Tablas:** `tareas(id, titulo, descripcion, completada, creado_en)` y `users(id, nombre, email único, password con bcrypt)`, ver `database/init.sql`.
 - **Variables:** `PGUSER` (postgres), `PGHOST` (localhost), `PGPASSWORD` (postgres), `PGDATABASE` (pern_db), `PGPORT` (5432), `PORT` (3000), `SECRET` (solo desarrollo).
 - **Scripts:** `pnpm dev` (nodemon), `pnpm start` (node).
@@ -53,3 +54,4 @@ Backend Express + PostgreSQL con CRUD de tareas y registro de usuarios. Clase 06
 - [ ] `POST /api/signup` crea el usuario sin devolver el password
 - [ ] `POST /api/signin` con clave errónea devuelve 400
 - [ ] `GET /api/profile` sin cookie devuelve 401
+- [ ] `GET /api/profile` con cookie truchada devuelve 401
