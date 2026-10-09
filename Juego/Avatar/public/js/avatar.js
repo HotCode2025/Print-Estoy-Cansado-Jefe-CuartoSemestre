@@ -2,14 +2,14 @@
 // Permite registrar una cantidad ilimitada (100, 1000, ...) sin cambiar la lógica del juego.
 // Como maximo se pueden agregar 5 personajes debido al poco sentido de tener 1000 luchadores en la selección. Los 4 originales no cuentan para el límite.
 class Personaje {
-    constructor({ id, nombre, imagen, nombreImg, genero, vidas = 3, ataques = ["Puñetazo", "Patada", "Barrida"], elemento = "", claseCss = "", emblema = "", esAgregado = false }) {
+    constructor({ id, nombre, imagen, nombreImg, genero, vidas = 3, ataques = [{ nombre: "Puñetazo", id: "boton-punetazo" }, { nombre: "Patada", id: "boton-patada" }, { nombre: "Barrida", id: "boton-barrida" }], elemento = "", claseCss = "", emblema = "", esAgregado = false }) {
         this.id = id
         this.nombre = nombre || id
         this.imagen = imagen
         this.nombreImg = nombreImg || ""
         this.genero = genero === "a" ? "a" : "o"
         this.vidas = vidas
-        this.ataques = Array.isArray(ataques) && ataques.length > 0 ? ataques : ["Puñetazo", "Patada", "Barrida"]
+        this.ataques = normalizarAtaques(ataques)
         this.elemento = elemento
         this.claseCss = claseCss
         this.emblema = emblema
@@ -39,6 +39,25 @@ class Personaje {
             '<span class="carta-seleccion">ELEGIDO</span>' +
             "</label>"
     }
+}
+
+// Ataques base: arreglo de objetos { nombre, id } como pide la clase.
+// Acepta objetos o strings sueltos ("Puñetazo") y los normaliza a objetos.
+function normalizarAtaques(ataques) {
+    const base = [
+        { nombre: "Puñetazo", id: "boton-punetazo" },
+        { nombre: "Patada", id: "boton-patada" },
+        { nombre: "Barrida", id: "boton-barrida" }
+    ]
+    if (!Array.isArray(ataques) || ataques.length === 0) {
+        return base
+    }
+    return ataques.map(function (a) {
+        if (typeof a === "string") {
+            return { nombre: a, id: "boton-" + a.toLowerCase() }
+        }
+        return { nombre: a.nombre, id: a.id }
+    })
 }
 
 // Registro de personajes disponibles en la selección.
@@ -499,21 +518,13 @@ function ataqueBarrida() {
     ataqueAleatorioEnemigo()
 }
 
-// Ataque aleatorio enemigo
+// Ataque aleatorio enemigo desde su propio arreglo de objetos (acceso por índice).
 function ataqueAleatorioEnemigo() {
-    const ataqueAleatorio = aleatorio(1, 3)
+    const enemigo = buscarPersonaje(personajeEnemigo)
+    const ataques = enemigo && Array.isArray(enemigo.ataques) ? enemigo.ataques : []
+    const elegido = ataques.length > 0 ? ataques[aleatorio(0, ataques.length - 1)] : null
 
-    switch (ataqueAleatorio) {
-        case 1:
-            ataqueEnemigo = "Puñetazo"
-            break
-        case 2:
-            ataqueEnemigo = "Patada"
-            break
-        case 3:
-            ataqueEnemigo = "Barrida"
-            break
-    }
+    ataqueEnemigo = elegido ? elegido.nombre : "Puñetazo"
 
     combate()
 }
