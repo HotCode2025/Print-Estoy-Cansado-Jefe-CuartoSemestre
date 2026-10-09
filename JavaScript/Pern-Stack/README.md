@@ -25,13 +25,11 @@ Backend Express + PostgreSQL con CRUD de tareas. Sirve para la Clase 06 (6.1–6
 
 ## Detalles
 
-| Tema | Decisión |
-|------|----------|
-| Conexión | `src/db.js` con `Pool` de `pg`, lee de `src/config.js` |
-| Tabla | `tareas(id, titulo, descripcion, completada, creado_en)` ver `database/init.sql` |
-| Variables | `PGUSER` (postgres), `PGHOST` (localhost), `PGPASSWORD` (postgres), `PGDATABASE` (pern_db), `PGPORT` (5432), `PORT` (3000) |
-| Scripts | `pnpm dev` (nodemon), `pnpm start` (node) |
-| Lockfile | `pnpm-lock.yaml` es el válido. `package-lock.json` quedó legacy de npm, no instalar con npm |
+- **Conexión:** `src/db.js` con `Pool` de `pg`, lee de `src/config.js`.
+- **Tabla:** `tareas(id, titulo, descripcion, completada, creado_en)`, ver `database/init.sql`.
+- **Variables:** `PGUSER` (postgres), `PGHOST` (localhost), `PGPASSWORD` (postgres), `PGDATABASE` (pern_db), `PGPORT` (5432), `PORT` (3000).
+- **Scripts:** `pnpm dev` (nodemon), `pnpm start` (node).
+- **Lockfile:** `pnpm-lock.yaml` es el válido. `package-lock.json` quedó legacy de npm, no instalar con npm.
 
 ### Endpoints
 
