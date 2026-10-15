@@ -78,6 +78,62 @@ def mostrar_game_over(screen):
     pygame.time.wait(2500)
 
 
+class BarraVolumen:
+    def __init__(self, x, y, width, height, volumen_inicial=0.7):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.hitbox = self.rect.inflate(16, 16)
+        self.volumen = volumen_inicial
+        self.arrastrando = False
+
+    def manejar_evento(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.hitbox.collidepoint(event.pos):
+                self.arrastrando = True
+                self.actualizar_volumen(event.pos[0])
+                return True
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.arrastrando = False
+        elif event.type == pygame.MOUSEMOTION and self.arrastrando:
+            self.actualizar_volumen(event.pos[0])
+            return True
+        elif event.type == pygame.MOUSEWHEEL and self.hitbox.collidepoint(pygame.mouse.get_pos()):
+            self.volumen = max(0.0, min(1.0, self.volumen + event.y * 0.05))
+            return True
+        elif event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_PLUS, pygame.K_KP_PLUS, pygame.K_EQUALS):
+                self.volumen = min(1.0, self.volumen + 0.05)
+                return True
+            elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+                self.volumen = max(0.0, self.volumen - 0.05)
+                return True
+        return False
+
+    def actualizar_volumen(self, mouse_x):
+        rel_x = mouse_x - self.rect.x
+        self.volumen = max(0.0, min(1.0, rel_x / self.rect.width))
+
+    def aplicar_volumen(self, sonidos):
+        pygame.mixer.music.set_volume(self.volumen)
+        for sonido in sonidos:
+            sonido.set_volume(self.volumen)
+
+    def dibujar(self, screen, font):
+        texto = font.render(f'Vol: {int(self.volumen * 100)}%', True, (220, 220, 220))
+        screen.blit(texto, (self.rect.x - texto.get_width() - 10, self.rect.y - 2))
+
+        pygame.draw.rect(screen, (35, 35, 50), self.rect, border_radius=4)
+        ancho_actual = int(self.rect.width * self.volumen)
+        if ancho_actual > 0:
+            rect_activo = pygame.Rect(self.rect.x, self.rect.y, ancho_actual, self.rect.height)
+            pygame.draw.rect(screen, (70, 160, 240), rect_activo, border_radius=4)
+        pygame.draw.rect(screen, (160, 160, 190), self.rect, 1, border_radius=4)
+
+        knob_x = self.rect.x + ancho_actual
+        knob_rect = pygame.Rect(knob_x - 5, self.rect.y - 4, 10, self.rect.height + 8)
+        pygame.draw.rect(screen, (245, 245, 255), knob_rect, border_radius=3)
+        pygame.draw.rect(screen, (100, 100, 130), knob_rect, 1, border_radius=3)
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -90,6 +146,9 @@ def main():
     sonido_explosion = pygame.mixer.Sound(os.path.join(sounds_dir, 'explosion.mp3'))
     pygame.mixer.music.load(os.path.join(sounds_dir, 'efectos.mp3'))
     pygame.mixer.music.play(-1)
+
+    barra_volumen = BarraVolumen(SCREEN_WIDTH - 150, 20, 130, 14, 0.7)
+    barra_volumen.aplicar_volumen([sonido_laser, sonido_explosion])
 
     fondo_index = 0
     fondo_surface = cargar_fondo(BACKGROUNDS[fondo_index])
@@ -110,6 +169,7 @@ def main():
     fade_surface.fill((255, 255, 255))
 
     font = pygame.font.Font(None, 36)
+    font_volumen = pygame.font.Font(None, 26)
     clock = pygame.time.Clock()
     running = True
 
@@ -118,6 +178,9 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if barra_volumen.manejar_evento(event):
+                barra_volumen.aplicar_volumen([sonido_laser, sonido_explosion])
+
 
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -222,8 +285,6 @@ def main():
                 screen.blit(fade_surface, (0, 0))
 
         personaje.dibujar(screen)
-        # Dibujar hitbox debug (opcional, pero ayuda a entender que está ahí)
-        # pygame.draw.rect(screen, (255, 255, 0), personaje.hitbox, 1)
         
         for enemigo in enemigos:
             enemigo.dibujar(screen)
@@ -234,6 +295,7 @@ def main():
 
         screen.blit(font.render(f'Puntos: {puntos}', True, (255, 255, 255)), (10, 28))
         screen.blit(font.render(f'Nivel: {nivel}', True, (255, 255, 255)), (10, 58))
+        barra_volumen.dibujar(screen, font_volumen)
 
         pygame.display.flip()
         clock.tick(60)
