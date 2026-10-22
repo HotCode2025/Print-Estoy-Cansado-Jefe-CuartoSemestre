@@ -1,15 +1,16 @@
-package Print.EstoyCansadoJefe.Tienda_Libros.Servicio;
+﻿package Print.EstoyCansadoJefe.Tienda_Libros.Servicio;
 
 import java.util.List;
-
 import Print.EstoyCansadoJefe.Tienda_Libros.modelo.Libro;
 
 public interface ILibroServicio {
-    public List<Libro> ListarLibros();
+    List<Libro> listarLibros();
+    Libro buscarLibroPorId(Integer idLibro);
+    void guardarLibro(Libro libro);
+    void eliminarLibro(Libro libro);
 
-    public Libro buscarLibroPorId(Integer idLibro);
-
-    public void GuardarLibro(Libro libro);
-
-    public void EliminarLibro(Libro libro);
+    // Compatibilidad con PascalCase
+    default List<Libro> ListarLibros() { return listarLibros(); }
+    default void GuardarLibro(Libro libro) { guardarLibro(libro); }
+    default void EliminarLibro(Libro libro) { eliminarLibro(libro); }
 }
