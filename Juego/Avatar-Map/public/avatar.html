@@ -52,15 +52,15 @@
       <div id="etapa-2" class="etapa" hidden>
         <section id="ver-mapa" class="seccion" aria-labelledby="titulo-mapa" hidden>
             <h2 id="titulo-mapa">Recorre el mapa con tu personaje</h2>
-            <p class="descripcion-seccion">Tu personaje y su rival esperan en el mapa del encuentro. Movelo con los botones de abajo.</p>
+            <p class="descripcion-seccion">Tu personaje y su rival esperan en el mapa del encuentro. Movelo con las flechas del teclado o con los botones de abajo.</p>
             <canvas id="mapa" width="800" height="600" role="img" aria-label="Mapa del encuentro con tu personaje y el rival"></canvas>
             <!-- Clase 10: botones de dirección. Mueven mientras están apretados
                  (mousedown sostiene la dirección, mouseup o mouseleave la sueltan). -->
             <div class="controles-mapa" role="group" aria-label="Mover el personaje en el mapa">
-                <button type="button" id="boton-mover-arriba" class="boton boton-control">Arriba</button>
-                <button type="button" id="boton-mover-izquierda" class="boton boton-control">Izquierda</button>
-                <button type="button" id="boton-mover-abajo" class="boton boton-control">Abajo</button>
-                <button type="button" id="boton-mover-derecha" class="boton boton-control">Derecha</button>
+                <button type="button" id="boton-mover-arriba" class="boton boton-control" aria-keyshortcuts="ArrowUp">Arriba</button>
+                <button type="button" id="boton-mover-izquierda" class="boton boton-control" aria-keyshortcuts="ArrowLeft">Izquierda</button>
+                <button type="button" id="boton-mover-abajo" class="boton boton-control" aria-keyshortcuts="ArrowDown">Abajo</button>
+                <button type="button" id="boton-mover-derecha" class="boton boton-control" aria-keyshortcuts="ArrowRight">Derecha</button>
             </div>
         </section>
         <section id="seleccionar-ataque" class="seccion" aria-labelledby="titulo-etapa-2">

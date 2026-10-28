@@ -278,8 +278,17 @@ const CUADRO_REFERENCIA_MS = 1000 / 60
 let personajeMapaJugador = null
 let personajeMapaEnemigo = null
 
-// Clase 10: dirección que mantiene apretado el botón del mapa (null = quieto).
+// Clase 10 y 11: las dos entradas de movimiento del jugador.
+// Se guarda la dirección activa de cada una y se calcula la velocidad una sola vez.
+const teclasMapa = new Set()
 let botonMapa = null
+// Equivalencia tecla -> dirección (es el switch (event.key) de la clase 11, en tabla).
+const DIRECCIONES_TECLA = {
+    ArrowUp: "arriba",
+    ArrowDown: "abajo",
+    ArrowLeft: "izquierda",
+    ArrowRight: "derecha"
+}
 
 // Encajar una imagen en un cuadro cuadrado manteniendo el aspecto y centrada.
 // Recibe la posición del cuadro para poder seguir al personaje cuando se mueve.
@@ -374,7 +383,7 @@ function detenerAnimacionMapa() {
     animacionMapaId = null
 }
 
-// La marcha la prende y apaga el botón que esté apretado.
+// La marcha la prenden y apagan las entradas de movimiento (teclas y botones).
 function definirMovimientoMapa(enMarcha) {
     moviendoseMapa = Boolean(enMarcha)
 }
@@ -407,13 +416,14 @@ function detenerMovimiento() {
     aplicarVelocidadMapa()
 }
 
-// Calcula velocidadX/velocidadY según el botón apretado en ese instante.
+// Calcula velocidadX/velocidadY según lo que esté presionado en ese instante.
+// Así, al soltar una tecla en diagonal, el otro eje sigue avanzando.
 function aplicarVelocidadMapa() {
     const jugador = personajeMapaJugador
     if (!jugador) {
         return
     }
-    const activas = new Set()
+    const activas = new Set(teclasMapa)
     if (botonMapa) {
         activas.add(botonMapa)
     }
@@ -434,6 +444,27 @@ function aplicarVelocidadMapa() {
     jugador.velocidadX = velocidadX
     jugador.velocidadY = velocidadY
     definirMovimientoMapa(velocidadX !== 0 || velocidadY !== 0)
+}
+
+// Clase 11: teclado. keydown marca la dirección, keyup la suelta.
+function sePresionoUnaTecla(event) {
+    const direccion = DIRECCIONES_TECLA[event.key]
+    if (!direccion) {
+        return
+    }
+    // Evita que las flechas scrolleen la página mientras se juega.
+    event.preventDefault()
+    teclasMapa.add(direccion)
+    aplicarVelocidadMapa()
+}
+
+function seSoltoUnaTecla(event) {
+    const direccion = DIRECCIONES_TECLA[event.key]
+    if (!direccion) {
+        return
+    }
+    teclasMapa.delete(direccion)
+    aplicarVelocidadMapa()
 }
 
 // Botones de dirección del mapa: se enganchan una sola vez al iniciar el juego.
@@ -469,9 +500,9 @@ function reiniciarPosicionMapa(personaje, cuadro) {
     personaje.velocidadY = 0
 }
 
-// Clase 10: iniciarMapa reúne lo que la clase 9 dejaba suelto en seleccionarPersonajeJugador.
-// Resuelve el personaje elegido, prepara el fondo y engancha el loop del mapa
-// una sola vez por partida.
+// Clase 11: iniciarMapa reúne lo que la clase dejaba suelto en seleccionarPersonajeJugador.
+// Resuelve el personaje elegido, prepara el fondo y engancha loop + listeners
+// del teclado una sola vez por partida.
 function iniciarMapa() {
     if (!sectionVerMapa || !mapa || typeof mapa.getContext !== "function") {
         return
@@ -483,19 +514,25 @@ function iniciarMapa() {
         return
     }
     reiniciarPosicionMapa(personajeMapaJugador, CUADRO_JUGADOR)
+    teclasMapa.clear()
     botonMapa = null
     aplicarVelocidadMapa()
     fondoMapaActual = new Image()
     fondoMapaActual.src = FONDOS_MAPA[aleatorio(0, FONDOS_MAPA.length - 1)]
     movimientoReducidoMapa = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     sectionVerMapa.hidden = false
+    window.addEventListener("keydown", sePresionoUnaTecla)
+    window.addEventListener("keyup", seSoltoUnaTecla)
     iniciarAnimacionMapa()
 }
 
-// Ocultar el mapa (inicio y reinicio de partida). Corta el loop: si no, al
-// volver a jugar quedan dos loops activos a la vez.
+// Ocultar el mapa (inicio y reinicio de partida). Corta el loop y los listeners:
+// si no, al volver a jugar quedan dos loops y dos keydown activos.
 function ocultarMapa() {
     detenerAnimacionMapa()
+    window.removeEventListener("keydown", sePresionoUnaTecla)
+    window.removeEventListener("keyup", seSoltoUnaTecla)
+    teclasMapa.clear()
     botonMapa = null
     personajeMapaJugador = null
     personajeMapaEnemigo = null
