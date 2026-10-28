@@ -51,12 +51,14 @@
 
       <div id="etapa-2" class="etapa" hidden>
         <section id="ver-mapa" class="seccion" aria-labelledby="titulo-mapa" hidden>
-            <h2 id="titulo-mapa">Recorre el mapa con tu personaje</h2>
-            <p class="descripcion-seccion">Tu personaje y su rival esperan en el mapa del encuentro. Movelo con las flechas del teclado o con los botones de abajo.</p>
-            <canvas id="mapa" width="800" height="600" role="img" aria-label="Mapa del encuentro con tu personaje y el rival"></canvas>
+            <h2 id="titulo-mapa">Arena del encuentro</h2>
+            <p class="descripcion-seccion">Usá las flechas del teclado o los botones de dirección para acercarte al rival. El duelo es al mejor de tres rondas.</p>
+            <canvas id="mapa" width="800" height="600" role="img" aria-label="Arena del encuentro: tu personaje a la izquierda, el rival a la derecha y, arriba, las barras de vida, la energía y las rondas ganadas"></canvas>
+            <p id="aviso-arena" class="nota" aria-live="polite">Acercate al rival para empezar el duelo.</p>
             <!-- Clase 10: botones de dirección. Mueven mientras están apretados
-                 (mousedown sostiene la dirección, mouseup o mouseleave la sueltan). -->
-            <div class="controles-mapa" role="group" aria-label="Mover el personaje en el mapa">
+                 (mousedown sostiene la dirección, mouseup o mouseleave la sueltan).
+                 Desaparecen cuando empieza el duelo: ahí se juega por turnos. -->
+            <div class="controles-mapa" role="group" aria-label="Mover el personaje en la arena">
                 <button type="button" id="boton-mover-arriba" class="boton boton-control" aria-keyshortcuts="ArrowUp">Arriba</button>
                 <button type="button" id="boton-mover-izquierda" class="boton boton-control" aria-keyshortcuts="ArrowLeft">Izquierda</button>
                 <button type="button" id="boton-mover-abajo" class="boton boton-control" aria-keyshortcuts="ArrowDown">Abajo</button>
@@ -67,19 +69,16 @@
             <img id="titulo-etapa-2" tabindex="-1" src="./assets/elegir-ataque.webp" alt="Elige tu ataque" class="seccion-titulo">
 
             <div class="marcador numeros-tabulares">
-                <p class="lado-jugador"><span class="quien">Tu personaje</span> <span class="marcador-ficha"><img id="personaje-jugador" class="marcador-foto" alt=""><span id="nombre-jugador" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-jugador">3</span> vidas</span></p>
+                <p class="lado-jugador"><span class="quien">Tu personaje</span> <span class="marcador-ficha"><img id="personaje-jugador" class="marcador-foto" alt=""><span id="nombre-jugador" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-jugador">0</span> rondas</span></p>
                 <span class="contra" aria-hidden="true">contra</span>
-                <p class="lado-enemigo"><span class="quien">Enemigo</span> <span class="marcador-ficha"><img id="personaje-enemigo" class="marcador-foto" alt=""><span id="nombre-enemigo" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-enemigo">3</span> vidas</span></p>
+                <p class="lado-enemigo"><span class="quien">Enemigo</span> <span class="marcador-ficha"><img id="personaje-enemigo" class="marcador-foto" alt=""><span id="nombre-enemigo" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-enemigo">0</span> rondas</span></p>
             </div>
 
-            <!-- Los ataques permanecen deshabilitados hasta elegir personaje;
-                 el atributo title explica el motivo -->
-            <div class="acciones">
-                <button id="boton-punetazo" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Puñetazo</button>
-                <button id="boton-patada" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Patada</button>
-                <button id="boton-barrida" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Barrida</button>
-            </div>
+            <!-- #acciones-duelo lo llena duelo.js con los cuatro ataques del kit
+                 de la nación elegida (costo, daño y ventaja elemental). -->
+            <div id="acciones-duelo" class="acciones" role="group" aria-label="Ataques disponibles"></div>
             <p id="aviso-seleccion" class="nota aviso" aria-live="polite"></p>
+            <p id="aviso-turno" class="nota aviso" aria-live="polite"></p>
         </section>
 
         <section id="registro-combate" class="seccion seccion-ajustada">
@@ -124,6 +123,14 @@
                         <td>Empates</td>
                         <td id="ranking-empates">0</td>
                     </tr>
+                    <tr>
+                        <td>Racha actual</td>
+                        <td id="ranking-racha">0</td>
+                    </tr>
+                    <tr>
+                        <td>Mejor racha</td>
+                        <td id="ranking-mejor-racha">0</td>
+                    </tr>
                 </tbody>
             </table>
             <div class="acciones">
@@ -141,34 +148,44 @@
     <!-- Reglas del juego en un cuadro de diálogo nativo -->
     <dialog id="dialogo-reglas" class="dialogo">
         <h2>Reglas del juego</h2>
-        <p>Cada duelo funciona como piedra, papel o tijera: eliges un ataque y la computadora sortea el suyo.</p>
+        <p>El duelo es por turnos, al mejor de tres rondas. Elegís uno de los cuatro ataques de tu nación y el rival elige el suyo sin ver tu elección.</p>
+        <ul class="lista-resultados">
+            <li>Cada ronda empieza con 100 de vida y 0 de energía; la energía sube 1 al empezar cada turno.</li>
+            <li>Los ataques cuestan 0, 1, 2 o 4 de energía. La definitiva queda 3 turnos en recarga.</li>
+            <li>El más rápido golpea primero: si deja al rival sin vida, su golpe no llega.</li>
+            <li>Tenés 12 segundos por turno. Si se agota, se ejecuta el ataque básico.</li>
+        </ul>
         <table class="tabla-reglas">
-            <caption>Relación entre ataques</caption>
+            <caption>Rueda elemental: se aplica por nación del luchador</caption>
             <thead>
                 <tr>
-                    <th scope="col">Ataque</th>
-                    <th scope="col">Vence a</th>
+                    <th scope="col">Nación</th>
+                    <th scope="col">Le gana a</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Puñetazo</td>
-                    <td>Barrida</td>
+                    <td>Agua</td>
+                    <td>Fuego</td>
                 </tr>
                 <tr>
-                    <td>Barrida</td>
-                    <td>Patada</td>
+                    <td>Fuego</td>
+                    <td>Aire</td>
                 </tr>
                 <tr>
-                    <td>Patada</td>
-                    <td>Puñetazo</td>
+                    <td>Aire</td>
+                    <td>Tierra</td>
+                </tr>
+                <tr>
+                    <td>Tierra</td>
+                    <td>Agua</td>
                 </tr>
             </tbody>
         </table>
         <ul class="lista-resultados">
-            <li>Mismo ataque de ambos lados: EMPATE</li>
-            <li>Tu ataque vence al del enemigo: GANASTE</li>
-            <li>El ataque enemigo vence al tuyo: PERDISTE</li>
+            <li>Con ventaja elemental el daño se multiplica por 1.5; en desventaja, por 0.75.</li>
+            <li>Gana la ronda quien deja al rival en 0 de vida.</li>
+            <li>Gana la partida quien suma dos rondas primero.</li>
         </ul>
         <button id="boton-cerrar-reglas" type="button" class="boton boton-primario">Entendido</button>
     </dialog>
@@ -186,6 +203,18 @@
         <p>Un proyecto de <strong>Print("Estoy Cansado Jefe")</strong> · Programación, 4.º semestre</p>
     </footer>
 
+    <!-- Orden de carga: cada archivo usa lo que declararon los anteriores.
+         avatar.js va último porque es el punto de entrada. -->
+    <script src="./js/personajes.js"></script>
+    <script src="./js/estado.js"></script>
+    <script src="./js/hud.js"></script>
+    <script src="./js/motor.js"></script>
+    <script src="./js/kits.js"></script>
+    <script src="./js/duelo.js"></script>
+    <script src="./js/mapa.js"></script>
+    <script src="./js/seleccion.js"></script>
+    <script src="./js/ranking.js"></script>
+    <script src="./js/combate.js"></script>
     <script src="./js/avatar.js"></script>
 
 </body>

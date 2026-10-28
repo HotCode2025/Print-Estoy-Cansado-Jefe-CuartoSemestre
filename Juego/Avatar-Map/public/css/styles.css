@@ -56,9 +56,11 @@
     --gap-interno-grande: 12px;
     --ritmo-seccion: 56px;
 
-    /* Radios concéntricos: tarjeta 10px, elementos anidados 6px */
+    /* Radios concéntricos: panel 10px, elementos anidados 6px */
     --radio-tarjeta: 10px;
     --radio-interno: 6px;
+    /* Radio propio de las cartas: a 10px se veían casi rectas. */
+    --radio-carta: 20px;
 }
 
 /* --------------------------------------------------------------------------
@@ -105,6 +107,15 @@ body {
 
 html {
     scrollbar-color: var(--trazo) var(--papel-profundo);
+    /* Reservar el ancho de la barra evita el salto de layout al congelar el scroll. */
+    scrollbar-gutter: stable;
+}
+
+/* Durante la pelea la página no se mueve: ni horizontal ni vertical.
+   mapa.js pone y saca esta clase al entrar y salir de la arena. */
+html.arena-en-duelo,
+html.arena-en-duelo body {
+    overflow: hidden;
 }
 
 a {
@@ -193,6 +204,13 @@ h2::after {
     height: 2px;
     margin-top: 6px;
     background: var(--trazo);
+}
+
+/* Los títulos de etapa reciben foco por código al cambiar de etapa
+   (tabindex="-1"). No se alcanzan con Tab, así que el anillo del navegador solo
+   ensucia el cierre; el foco sigue existiendo para lectores de pantalla. */
+h2[tabindex="-1"]:focus {
+    outline: none;
 }
 
 .descripcion-seccion {
@@ -288,7 +306,7 @@ h2::after {
     padding: 14px var(--gap-interno-grande) var(--gap-interno-grande);
     background-color: var(--papel-profundo);
     border: 1px solid var(--trazo);
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio-carta);
     cursor: pointer;
     overflow: hidden;
 }
@@ -299,7 +317,7 @@ h2::after {
     position: absolute;
     inset: 0 0 auto 0;
     height: 3px;
-    border-radius: var(--radio-tarjeta) var(--radio-tarjeta) 0 0;
+    border-radius: var(--radio-carta) var(--radio-carta) 0 0;
     background-color: var(--color-nacion, var(--tinta-suave));
 }
 
@@ -488,7 +506,7 @@ h2::after {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio-carta);
     background: linear-gradient(
         to bottom,
         transparent 0%,
@@ -787,11 +805,42 @@ strong:empty::before {
 
 .acciones {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--gap-interno-grande);
 }
 
 .acciones .boton {
     flex: 1;
+}
+
+/* E4: los cuatro ataques del kit se generan desde duelo.js. Cada botón lleva
+   dos renglones (nombre y costo/daño) y en pantallas angostas baja a dos por fila. */
+.acciones .boton-ataque {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 9.5rem;
+    padding-block: var(--gap-interno);
+    text-align: left;
+    line-height: 1.25;
+}
+
+.ataque-nombre {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.ataque-detalle {
+    font-size: var(--texto-nota);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    opacity: 0.8;
+}
+
+/* Sin partida en curso el contenedor no ocupa lugar en el flujo. */
+#acciones-duelo:empty {
+    display: none;
 }
 
 .nota {
@@ -989,7 +1038,7 @@ strong:empty::before {
     content: "";
     position: absolute;
     inset: -4px;
-    border-radius: calc(var(--radio-tarjeta) + 4px);
+    border-radius: calc(var(--radio-carta) + 4px);
     border: 3px solid var(--sello);
     box-shadow: 0 0 16px rgba(166, 61, 47, 0.4);
     pointer-events: none;
@@ -1028,7 +1077,7 @@ strong:empty::before {
 .carta-modal-frente {
     position: absolute;
     inset: 0;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio-carta);
     background-color: var(--papel-profundo);
     background-image:
         repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(43,33,24,0.03) 8px, rgba(43,33,24,0.03) 9px),
@@ -1051,7 +1100,7 @@ strong:empty::before {
 .carta-modal-reverso {
     position: absolute;
     inset: 0;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio-carta);
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
@@ -1070,7 +1119,7 @@ strong:empty::before {
     position: absolute;
     inset: 0;
     z-index: 1;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio-carta);
     background: linear-gradient(
         to bottom,
         transparent 25%,
@@ -1117,8 +1166,24 @@ strong:empty::before {
     animation: carta-flip 800ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
+/* E1: la vida y los nombres viven ahora en el HUD del canvas.
+   El marcador se conserva en el DOM, oculto a la vista, como referencia
+   para lectores de pantalla (y para no romper el código de combate). */
+.marcador {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* --------------------------------------------------------------------------
-   Mapa del encuentro (clase 9): sección centrada y canvas con borde.
+   Arena del encuentro (clases 9, 10 y 11 + E1): el canvas es el juego.
    -------------------------------------------------------------------------- */
 #ver-mapa {
     display: flex;
@@ -1143,6 +1208,13 @@ strong:empty::before {
     border-radius: var(--radio-interno);
 }
 
+/* Aviso de fase de la arena: acercamiento o duelo en curso. */
+#aviso-arena {
+    margin-block: 12px 0;
+    text-align: center;
+    min-height: 1.4em;
+}
+
 /* Clase 10: botones de dirección del mapa, en forma de cruz.
    Se mantienen apretados (mousedown) y sueltan con mouseup/mouseleave. */
 .controles-mapa {
@@ -1155,6 +1227,11 @@ strong:empty::before {
     gap: 8px;
     margin-block-start: 16px;
     width: min(100%, 380px);
+}
+
+/* El atributo hidden tiene que ganarle al display: grid de arriba. */
+.controles-mapa[hidden] {
+    display: none;
 }
 
 .controles-mapa .boton-control {
