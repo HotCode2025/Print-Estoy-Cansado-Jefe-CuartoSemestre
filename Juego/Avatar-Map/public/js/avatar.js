@@ -14,6 +14,20 @@ class Personaje {
         this.claseCss = claseCss
         this.emblema = emblema
         this.esAgregado = Boolean(esAgregado)
+
+        // Clase 10: estado del personaje en el mapa del encuentro.
+        // La posición vive en el objeto porque el movimiento la actualiza cuadro a cuadro.
+        this.x = 60
+        this.y = 120
+        // ancho/alto son el cuadro donde se encaja la imagen: la foto se dibuja
+        // centrada y sin deformarse dentro de ese cuadrado.
+        this.ancho = 280
+        this.alto = 280
+        this.velocidadX = 0
+        this.velocidadY = 0
+        // Imagen propia del mapa: se crea una sola vez por personaje, no en cada cuadro.
+        this.mapaFoto = new Image()
+        this.mapaFoto.src = this.imagen || ""
     }
 
     esValido() {
@@ -240,60 +254,59 @@ const claveRanking = "avatarRanking"
 const sectionVerMapa = document.getElementById("ver-mapa")
 const mapa = document.getElementById("mapa")
 let lienzo = null
-// Estado de animación del mapa: encuadre fijo del personaje, si está en
-// marcha (lo van a prender las teclas en la próxima parte) y el loop activo.
-let encuadreMapa = null
-let imagenMapaActual = null
-let moviendoseMapa = false
+// Loop del mapa: id de requestAnimationFrame y tiempo del cuadro anterior
+// (se usa para escalar la velocidad al refresco real de la pantalla).
 let animacionMapaId = null
+let ultimoCuadroMapa = 0
+let movimientoReducidoMapa = false
+// El personaje está en marcha: la animación flota distinto mientras se mueve.
+let moviendoseMapa = false
 // Fondo del mapa: rota al azar entre estas imágenes en cada partida.
 const FONDOS_MAPA = ["./assets/glaciares_bg.webp", "./assets/salon_bg.webp", "./assets/valle_bg.webp"]
 let fondoMapaActual = null
 
-// Cuadro del personaje en el mapa (canvas de 800x600): posición y tamaño.
-// Encajar una imagen en ese cuadro manteniendo el aspecto y centrada.
-const CUADRO_MAPA = { x: 60, y: 120, lado: 300 }
-function encuadrarEnCuadro(naturalAncho, naturalAlto) {
-    const lado = CUADRO_MAPA.lado
+// Clase 10: posición de cada personaje en el canvas (800x600) y velocidad.
+// El jugador arranca a la izquierda y el enemigo espera a la derecha.
+const CUADRO_JUGADOR = { x: 40, y: 160, lado: 280 }
+const CUADRO_ENEMIGO = { x: 480, y: 160, lado: 280 }
+// Píxeles por cuadro tomando 60 fps como referencia (la velocidad se ajusta
+// al refresco real: 120 Hz o 144 Hz se mueven igual, no el doble).
+const VELOCIDAD_MAPA = 5
+const CUADRO_REFERENCIA_MS = 1000 / 60
+
+// Instancias que se están pintando en el mapa.
+let personajeMapaJugador = null
+let personajeMapaEnemigo = null
+
+// Clase 10: dirección que mantiene apretado el botón del mapa (null = quieto).
+let botonMapa = null
+
+// Encajar una imagen en un cuadro cuadrado manteniendo el aspecto y centrada.
+// Recibe la posición del cuadro para poder seguir al personaje cuando se mueve.
+function encuadrarEnCuadro(x, y, lado, naturalAncho, naturalAlto) {
     const escala = Math.min(lado / naturalAncho, lado / naturalAlto)
     const ancho = naturalAncho * escala
     const alto = naturalAlto * escala
-    return { x: CUADRO_MAPA.x + (lado - ancho) / 2, y: CUADRO_MAPA.y + (lado - alto) / 2, ancho: ancho, alto: alto }
+    return { x: x + (lado - ancho) / 2, y: y + (lado - alto) / 2, ancho: ancho, alto: alto }
 }
 
-// Dibujar al personaje elegido en el mapa del encuentro.
-// Si la imagen no carga, se deja un marcador (fillRect) en su lugar.
-function dibujarMapa() {
-    if (!mapa || typeof mapa.getContext !== "function") {
+// Pinta un personaje dentro de su cuadro del mapa, con el marco tinta de 5px.
+// Si la imagen todavía no cargó, deja el marcador con fillRect que pedía la clase 9.
+function dibujarPersonajeMapa(personaje, x, y, lado, salto) {
+    if (!personaje) {
         return
     }
-    detenerAnimacionMapa()
-    lienzo = mapa.getContext("2d")
-    lienzo.clearRect(0, 0, mapa.width, mapa.height)
-    const elegido = buscarPersonaje(personajeJugador)
-    if (!elegido) {
+    const foto = personaje.mapaFoto
+    if (!foto || !foto.complete || !foto.naturalWidth || !foto.naturalHeight) {
+        lienzo.fillRect(x, y, lado, lado)
         return
     }
-    encuadreMapa = null
-    imagenMapaActual = null
-    fondoMapaActual = null
-    const fondo = new Image()
-    fondo.src = FONDOS_MAPA[aleatorio(0, FONDOS_MAPA.length - 1)]
-    fondoMapaActual = fondo
-    const imagen = new Image()
-    imagen.addEventListener("load", function () {
-        if (!imagen.naturalWidth || !imagen.naturalHeight) {
-            lienzo.fillRect(CUADRO_MAPA.x, CUADRO_MAPA.y, CUADRO_MAPA.lado, CUADRO_MAPA.lado)
-            return
-        }
-        encuadreMapa = encuadrarEnCuadro(imagen.naturalWidth, imagen.naturalHeight)
-        imagenMapaActual = imagen
-        iniciarAnimacionMapa()
-    })
-    imagen.addEventListener("error", function () {
-        lienzo.fillRect(CUADRO_MAPA.x, CUADRO_MAPA.y, CUADRO_MAPA.lado, CUADRO_MAPA.lado)
-    })
-    imagen.src = elegido.imagen
+    const encuadre = encuadrarEnCuadro(x, y, lado, foto.naturalWidth, foto.naturalHeight)
+    const arriba = encuadre.y + salto
+    lienzo.lineWidth = 5
+    lienzo.strokeStyle = "#2B2118"
+    lienzo.strokeRect(encuadre.x, arriba, encuadre.ancho, encuadre.alto)
+    lienzo.drawImage(foto, encuadre.x, arriba, encuadre.ancho, encuadre.alto)
 }
 
 // Dibujar el fondo cubriendo todo el canvas (cover) manteniendo aspecto.
@@ -308,38 +321,49 @@ function dibujarFondoMapa() {
     lienzo.drawImage(fondoMapaActual, (mapa.width - ancho) / 2, (mapa.height - alto) / 2, ancho, alto)
 }
 
-// Un cuadro de animación: fondo + marco tinta de 5px + personaje con flotación.
-// Quietito flota suave; en marcha rebota más rápido y amplio.
-function dibujarCuadroMapa(tiempo) {
-    if (!lienzo || !encuadreMapa || !imagenMapaActual) {
+// Un cuadro de animación: mueve al jugador, limpia, pinta fondo, enemigo y jugador.
+// Quieto flota suave; en marcha rebota más rápido y amplio.
+function dibujarCuadroMapa(tiempo, deltaMs) {
+    if (!lienzo) {
         return
     }
+    moverPersonajeMapa(deltaMs)
     const amplitud = moviendoseMapa ? 12 : 6
     const velocidad = moviendoseMapa ? 0.012 : 0.004
-    const salto = Math.sin(tiempo * velocidad) * amplitud
-    const x = encuadreMapa.x
-    const y = encuadreMapa.y + salto
+    const salto = movimientoReducidoMapa ? 0 : Math.sin(tiempo * velocidad) * amplitud
     lienzo.clearRect(0, 0, mapa.width, mapa.height)
     dibujarFondoMapa()
-    lienzo.lineWidth = 5
-    lienzo.strokeStyle = "#2B2118"
-    lienzo.strokeRect(x, y, encuadreMapa.ancho, encuadreMapa.alto)
-    lienzo.drawImage(imagenMapaActual, x, y, encuadreMapa.ancho, encuadreMapa.alto)
+    dibujarPersonajeMapa(personajeMapaEnemigo, CUADRO_ENEMIGO.x, CUADRO_ENEMIGO.y, CUADRO_ENEMIGO.lado, 0)
+    if (personajeMapaJugador) {
+        dibujarPersonajeMapa(personajeMapaJugador, personajeMapaJugador.x, personajeMapaJugador.y, personajeMapaJugador.ancho, salto)
+    }
 }
 
-// Loop del mapa con requestAnimationFrame. Si el sistema pide movimiento
-// reducido, se dibuja un solo cuadro estático en vez de animar.
-function iniciarAnimacionMapa() {
-    detenerAnimacionMapa()
-    const movimientoReducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (movimientoReducido) {
-        dibujarCuadroMapa(0)
+// Clase 10: la posición se actualiza sumando la velocidad, y se limita al canvas
+// para que el personaje no pueda salirse del mapa.
+function moverPersonajeMapa(deltaMs) {
+    const jugador = personajeMapaJugador
+    if (!jugador) {
         return
     }
+    const factor = Math.min(deltaMs || CUADRO_REFERENCIA_MS, 50) / CUADRO_REFERENCIA_MS
+    jugador.x += jugador.velocidadX * factor
+    jugador.y += jugador.velocidadY * factor
+    jugador.x = Math.min(Math.max(jugador.x, 0), Math.max(mapa.width - jugador.ancho, 0))
+    jugador.y = Math.min(Math.max(jugador.y, 0), Math.max(mapa.height - jugador.alto, 0))
+}
+
+// Loop del mapa con requestAnimationFrame. Se escala por el tiempo real entre
+// cuadros para que la velocidad sea la misma en pantallas de 60, 120 o 144 Hz.
+function iniciarAnimacionMapa() {
+    detenerAnimacionMapa()
     const cuadro = function (tiempo) {
-        dibujarCuadroMapa(tiempo || 0)
+        const delta = ultimoCuadroMapa ? tiempo - ultimoCuadroMapa : CUADRO_REFERENCIA_MS
+        ultimoCuadroMapa = tiempo
+        dibujarCuadroMapa(tiempo || 0, delta)
         animacionMapaId = requestAnimationFrame(cuadro)
     }
+    ultimoCuadroMapa = 0
     animacionMapaId = requestAnimationFrame(cuadro)
 }
 
@@ -350,27 +374,135 @@ function detenerAnimacionMapa() {
     animacionMapaId = null
 }
 
-// Las teclas lo van a prender y apagar en la próxima parte.
+// La marcha la prende y apaga el botón que esté apretado.
 function definirMovimientoMapa(enMarcha) {
     moviendoseMapa = Boolean(enMarcha)
 }
 
-// Mostrar el mapa con el personaje dibujado.
-function mostrarMapa() {
-    if (!sectionVerMapa) {
-        return
-    }
-    sectionVerMapa.hidden = false
-    dibujarMapa()
+// Clase 10: los botones del mapa fijan la dirección mientras están apretados
+// (mousedown) y detenerMovimiento() la suelta (mouseup o mouseleave).
+function moverArriba() {
+    fijarBotonMapa("arriba")
 }
 
-// Ocultar el mapa (inicio y reinicio de partida).
-function ocultarMapa() {
-    if (!sectionVerMapa) {
+function moverAbajo() {
+    fijarBotonMapa("abajo")
+}
+
+function moverIzquierda() {
+    fijarBotonMapa("izquierda")
+}
+
+function moverDerecha() {
+    fijarBotonMapa("derecha")
+}
+
+function fijarBotonMapa(direccion) {
+    botonMapa = direccion
+    aplicarVelocidadMapa()
+}
+
+function detenerMovimiento() {
+    botonMapa = null
+    aplicarVelocidadMapa()
+}
+
+// Calcula velocidadX/velocidadY según el botón apretado en ese instante.
+function aplicarVelocidadMapa() {
+    const jugador = personajeMapaJugador
+    if (!jugador) {
         return
     }
+    const activas = new Set()
+    if (botonMapa) {
+        activas.add(botonMapa)
+    }
+    let velocidadX = 0
+    let velocidadY = 0
+    if (activas.has("izquierda")) {
+        velocidadX -= VELOCIDAD_MAPA
+    }
+    if (activas.has("derecha")) {
+        velocidadX += VELOCIDAD_MAPA
+    }
+    if (activas.has("arriba")) {
+        velocidadY -= VELOCIDAD_MAPA
+    }
+    if (activas.has("abajo")) {
+        velocidadY += VELOCIDAD_MAPA
+    }
+    jugador.velocidadX = velocidadX
+    jugador.velocidadY = velocidadY
+    definirMovimientoMapa(velocidadX !== 0 || velocidadY !== 0)
+}
+
+// Botones de dirección del mapa: se enganchan una sola vez al iniciar el juego.
+const CONTROLES_MAPA = [
+    { id: "boton-mover-arriba", mover: moverArriba },
+    { id: "boton-mover-izquierda", mover: moverIzquierda },
+    { id: "boton-mover-abajo", mover: moverAbajo },
+    { id: "boton-mover-derecha", mover: moverDerecha }
+]
+
+function configurarControlesMapa() {
+    CONTROLES_MAPA.forEach(function (control) {
+        const boton = document.getElementById(control.id)
+        if (!boton) {
+            return
+        }
+        boton.addEventListener("mousedown", control.mover)
+        boton.addEventListener("mouseup", detenerMovimiento)
+        boton.addEventListener("mouseleave", detenerMovimiento)
+    })
+}
+
+// Devolver al personaje a su cuadro inicial con la velocidad en cero.
+function reiniciarPosicionMapa(personaje, cuadro) {
+    if (!personaje) {
+        return
+    }
+    personaje.x = cuadro.x
+    personaje.y = cuadro.y
+    personaje.ancho = cuadro.lado
+    personaje.alto = cuadro.lado
+    personaje.velocidadX = 0
+    personaje.velocidadY = 0
+}
+
+// Clase 10: iniciarMapa reúne lo que la clase 9 dejaba suelto en seleccionarPersonajeJugador.
+// Resuelve el personaje elegido, prepara el fondo y engancha el loop del mapa
+// una sola vez por partida.
+function iniciarMapa() {
+    if (!sectionVerMapa || !mapa || typeof mapa.getContext !== "function") {
+        return
+    }
+    lienzo = mapa.getContext("2d")
+    personajeMapaJugador = buscarPersonaje(personajeJugador) || null
+    personajeMapaEnemigo = buscarPersonaje(personajeEnemigo) || null
+    if (!personajeMapaJugador) {
+        return
+    }
+    reiniciarPosicionMapa(personajeMapaJugador, CUADRO_JUGADOR)
+    botonMapa = null
+    aplicarVelocidadMapa()
+    fondoMapaActual = new Image()
+    fondoMapaActual.src = FONDOS_MAPA[aleatorio(0, FONDOS_MAPA.length - 1)]
+    movimientoReducidoMapa = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    sectionVerMapa.hidden = false
+    iniciarAnimacionMapa()
+}
+
+// Ocultar el mapa (inicio y reinicio de partida). Corta el loop: si no, al
+// volver a jugar quedan dos loops activos a la vez.
+function ocultarMapa() {
     detenerAnimacionMapa()
-    sectionVerMapa.hidden = true
+    botonMapa = null
+    personajeMapaJugador = null
+    personajeMapaEnemigo = null
+    moviendoseMapa = false
+    if (sectionVerMapa) {
+        sectionVerMapa.hidden = true
+    }
 }
 
 // Mostrar una etapa (1-3) ocultando las demás sin mover nodos ni reemplazar innerHTML.
@@ -411,6 +543,7 @@ function iniciarJuego() {
     }
 
     configurarDialogoReglas()
+    configurarControlesMapa()
     renderSeleccion()
     configurarFormularioPersonaje()
     ocultarMapa()
@@ -545,7 +678,7 @@ function seleccionarPersonajeJugador() {
     habilitarAtaques()
     seleccionarPersonajeEnemigo()
     mostrarEtapa(2)
-    mostrarMapa()
+    iniciarMapa()
 }
 
 // Habilitar los botones de ataque una vez elegido el personaje

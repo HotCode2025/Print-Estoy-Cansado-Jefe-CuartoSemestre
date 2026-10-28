@@ -1143,6 +1143,45 @@ strong:empty::before {
     border-radius: var(--radio-interno);
 }
 
+/* Clase 10: botones de dirección del mapa, en forma de cruz.
+   Se mantienen apretados (mousedown) y sueltan con mouseup/mouseleave. */
+.controles-mapa {
+    display: grid;
+    grid-template-areas:
+        ". arriba ."
+        "izquierda . derecha"
+        ". abajo .";
+    grid-template-columns: repeat(3, minmax(84px, 1fr));
+    gap: 8px;
+    margin-block-start: 16px;
+    width: min(100%, 380px);
+}
+
+.controles-mapa .boton-control {
+    width: 100%;
+    padding: 10px 8px;
+    font-size: 0.9rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#boton-mover-arriba {
+    grid-area: arriba;
+}
+
+#boton-mover-izquierda {
+    grid-area: izquierda;
+}
+
+#boton-mover-abajo {
+    grid-area: abajo;
+}
+
+#boton-mover-derecha {
+    grid-area: derecha;
+}
+
 /* --------------------------------------------------------------------------
    Pie de página
    -------------------------------------------------------------------------- */

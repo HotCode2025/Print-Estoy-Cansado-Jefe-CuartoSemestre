@@ -188,8 +188,13 @@ La sección debe ser accesible sin interferir con la jugabilidad.
 
 ---
 
-## Mapa del encuentro (clase 9)
+## Mapa del encuentro (clases 9 y 10)
 
-- La sección `ver-mapa` muestra un canvas de 800x600 (responsive) donde aparece tu personaje.
-- Si la imagen no carga, se dibuja un marcador en su lugar.
-- El movimiento con teclado llega en la próxima parte.
+- La sección `ver-mapa` muestra un canvas de 800x600 (responsive) donde aparecen tu personaje y su rival.
+- El fondo rota al azar entre tres imágenes y cubre el canvas sin deformarse (*cover*).
+- Cada personaje guarda en la clase `Personaje` su posición (`x`, `y`), el cuadro donde se dibuja (`ancho`, `alto`), su velocidad (`velocidadX`, `velocidadY`) y su propia imagen del mapa (`mapaFoto`).
+- **Clase 10:** los botones Arriba / Abajo / Izquierda / Derecha mueven mientras se mantienen apretados: `mousedown` fija la dirección y `mouseup` o `mouseleave` la sueltan.
+- El dibujo corre en un solo loop de `requestAnimationFrame` escalado por el tiempo real entre cuadros: la velocidad es la misma en pantallas de 60, 120 o 144 Hz.
+- La imagen se encaja en su cuadro manteniendo la proporción, y el personaje no puede salirse del canvas.
+- Al reiniciar la partida se corta el loop, así no quedan dos animaciones corriendo.
+- Si la imagen no carga, se dibuja un marcador con `fillRect` en su lugar.
