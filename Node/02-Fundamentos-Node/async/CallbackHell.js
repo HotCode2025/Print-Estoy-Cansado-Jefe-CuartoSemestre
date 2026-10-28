@@ -15,7 +15,7 @@ function hablar(callbackHablar){
 
 function adios(nombre, otroCallback) {
     setTimeout(function(){
-        console.log("Adios", nombre)
+        console.log("Adios"+ nombre)
         otroCallback();
     }, 1000);
 }
