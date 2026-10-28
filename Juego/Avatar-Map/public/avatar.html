@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Juego de combate por turnos inspirado en La Leyenda de Aang: elige un personaje, enfréntate a la computadora y defiende tus tres vidas.">
+    <title>Avatar: La Leyenda de Aang</title>
+    <link rel="icon" type="image/webp" href="./assets/logo.webp">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <header class="encabezado contenedor">
+        <div class="logo-grupo">
+            <img src="./assets/avatar-logo.webp" alt="Avatar" class="logo-titulo logo-principal">
+            <img src="./assets/avatar-logo2.webp" alt="La Leyenda de Aang" class="logo-titulo logo-secundario">
+        </div>
+        <button id="boton-reglas" type="button" class="boton boton-secundario">Reglas</button>
+    </header>
+
+    <main class="contenedor">
+      <div id="etapa-1" class="etapa">
+        <section id="seleccion-personaje" class="seccion" aria-labelledby="titulo-etapa-1">
+            <img id="titulo-etapa-1" tabindex="-1" src="./assets/seleccionar-personaje.webp" alt="Seleccionar personaje" class="seccion-titulo">
+            <p class="descripcion-seccion">Cada carta es un maestro de una nación. Elige el tuyo para comenzar: el personaje enemigo se sortea al azar.</p>
+
+            <!-- Tarjetas coleccionables: se generan desde el registro PERSONAJES en js/avatar.js.
+                 Cada etiqueta envuelve su radio button, así el click en la carta marca
+                 el personaje y el teclado también funciona -->
+            <div class="cartas" id="cartas-personajes" aria-live="polite"></div>
+
+            <form id="formulario-personaje" class="formulario-personaje" aria-label="Agregar personaje">
+                <label class="campo-formulario" for="nuevo-nombre">Nombre del personaje
+                    <input type="text" id="nuevo-nombre" name="nuevo-nombre" maxlength="24" placeholder="Por ejemplo: Sokka" autocomplete="off">
+                </label>
+                <label class="campo-formulario" for="nuevo-elemento">Elemento
+                    <select id="nuevo-elemento" name="nuevo-elemento">
+                        <option value="Fuego">Fuego</option>
+                        <option value="Aire">Aire</option>
+                        <option value="Agua">Agua</option>
+                        <option value="Tierra">Tierra</option>
+                    </select>
+                </label>
+                <button type="submit" id="boton-agregar-personaje" class="boton boton-secundario">Agregar personaje</button>
+                <p id="contador-personajes" class="nota" aria-live="polite">Agregados 0/5</p>
+                <p id="aviso-personaje" class="nota aviso" aria-live="polite"></p>
+            </form>
+
+            <button id="boton-personaje" type="button" class="boton boton-primario">Seleccionar</button>
+        </section>
+      </div>
+
+      <div id="etapa-2" class="etapa" hidden>
+        <section id="ver-mapa" class="seccion" aria-labelledby="titulo-mapa" hidden>
+            <h2 id="titulo-mapa">Recorre el mapa con tu personaje</h2>
+            <p class="descripcion-seccion">Tu personaje aparece en el mapa del encuentro. Desde acá vas a moverlo con el teclado en la próxima etapa.</p>
+            <canvas id="mapa" width="800" height="600" role="img" aria-label="Mapa del encuentro con tu personaje"></canvas>
+        </section>
+        <section id="seleccionar-ataque" class="seccion" aria-labelledby="titulo-etapa-2">
+            <img id="titulo-etapa-2" tabindex="-1" src="./assets/elegir-ataque.webp" alt="Elige tu ataque" class="seccion-titulo">
+
+            <div class="marcador numeros-tabulares">
+                <p class="lado-jugador"><span class="quien">Tu personaje</span> <span class="marcador-ficha"><img id="personaje-jugador" class="marcador-foto" alt=""><span id="nombre-jugador" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-jugador">3</span> vidas</span></p>
+                <span class="contra" aria-hidden="true">contra</span>
+                <p class="lado-enemigo"><span class="quien">Enemigo</span> <span class="marcador-ficha"><img id="personaje-enemigo" class="marcador-foto" alt=""><span id="nombre-enemigo" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-enemigo">3</span> vidas</span></p>
+            </div>
+
+            <!-- Los ataques permanecen deshabilitados hasta elegir personaje;
+                 el atributo title explica el motivo -->
+            <div class="acciones">
+                <button id="boton-punetazo" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Puñetazo</button>
+                <button id="boton-patada" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Patada</button>
+                <button id="boton-barrida" type="button" class="boton boton-ataque" disabled title="Primero selecciona un personaje">Barrida</button>
+            </div>
+            <p id="aviso-seleccion" class="nota aviso" aria-live="polite"></p>
+        </section>
+
+        <section id="registro-combate" class="seccion seccion-ajustada">
+            <img src="./assets/registro-combate.webp" alt="Registro de combate" class="seccion-titulo">
+            <p class="nota" id="registro-vacio">Los resultados de cada ronda aparecerán aquí.</p>
+            <div id="mensajes" class="registro numeros-tabulares" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <div id="etapa-3" class="etapa" hidden>
+        <section id="resultado-final" class="seccion" aria-labelledby="titulo-etapa-3">
+            <h2 id="titulo-etapa-3" tabindex="-1">Resultado del duelo</h2>
+            <p class="resultado-mensaje" id="resultado-final-mensaje" aria-live="polite"></p>
+            <div class="carta-resultado-contenedor" id="cartas-final-contenedor"></div>
+        </section>
+
+        <section id="clasificacion" class="seccion seccion-ajustada" aria-labelledby="titulo-clasificacion">
+            <h2 id="titulo-clasificacion">Clasificación</h2>
+            <p class="nota" id="resumen-partida" aria-live="polite"></p>
+            <table class="tabla-reglas" id="tabla-clasificacion">
+                <caption>Victorias acumuladas en este navegador</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Concepto</th>
+                        <th scope="col">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Partidas jugadas</td>
+                        <td id="ranking-partidas">0</td>
+                    </tr>
+                    <tr>
+                        <td>Victorias</td>
+                        <td id="ranking-victorias">0</td>
+                    </tr>
+                    <tr>
+                        <td>Derrotas</td>
+                        <td id="ranking-derrotas">0</td>
+                    </tr>
+                    <tr>
+                        <td>Empates</td>
+                        <td id="ranking-empates">0</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="acciones">
+                <button id="boton-jugar-nuevo" type="button" class="boton boton-primario">Jugar de nuevo</button>
+                <button id="boton-ver-reglas-etapa3" type="button" class="boton boton-secundario">Ver reglas</button>
+            </div>
+        </section>
+
+        <section id="reiniciar" class="seccion" hidden>
+            <button id="boton-reiniciar" type="button" class="boton boton-secundario">Reiniciar partida</button>
+        </section>
+      </div>
+    </main>
+
+    <!-- Reglas del juego en un cuadro de diálogo nativo -->
+    <dialog id="dialogo-reglas" class="dialogo">
+        <h2>Reglas del juego</h2>
+        <p>Cada duelo funciona como piedra, papel o tijera: eliges un ataque y la computadora sortea el suyo.</p>
+        <table class="tabla-reglas">
+            <caption>Relación entre ataques</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Ataque</th>
+                    <th scope="col">Vence a</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Puñetazo</td>
+                    <td>Barrida</td>
+                </tr>
+                <tr>
+                    <td>Barrida</td>
+                    <td>Patada</td>
+                </tr>
+                <tr>
+                    <td>Patada</td>
+                    <td>Puñetazo</td>
+                </tr>
+            </tbody>
+        </table>
+        <ul class="lista-resultados">
+            <li>Mismo ataque de ambos lados: EMPATE</li>
+            <li>Tu ataque vence al del enemigo: GANASTE</li>
+            <li>El ataque enemigo vence al tuyo: PERDISTE</li>
+        </ul>
+        <button id="boton-cerrar-reglas" type="button" class="boton boton-primario">Entendido</button>
+    </dialog>
+
+    <!-- Modal de resultado final: carta ganadora con flip3D -->
+    <dialog id="dialogo-resultado" class="dialogo-resultado">
+        <h2 id="resultado-titulo">Fin del duelo</h2>
+        <p class="resultado-mensaje" id="resultado-mensaje"></p>
+        <div class="carta-resultado-contenedor" id="carta-resultado-contenedor"></div>
+        <button id="boton-reiniciar-modal" type="button" class="boton boton-primario">Jugar de nuevo</button>
+    </dialog>
+
+    <footer class="pie contenedor">
+        <img src="./assets/logo.webp" alt="" width="76" height="28">
+        <p>Un proyecto de <strong>Print("Estoy Cansado Jefe")</strong> · Programación, 4.º semestre</p>
+    </footer>
+
+    <script src="./js/avatar.js"></script>
+
+</body>
+</html>
