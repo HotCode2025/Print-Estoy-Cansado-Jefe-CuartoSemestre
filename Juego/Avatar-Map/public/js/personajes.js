@@ -46,11 +46,12 @@ class Personaje {
         const nombreHtml = this.nombreImg
             ? `<img src="${this.nombreImg}" alt="${this.nombre}" class="carta-nombre-img">`
             : `<span class="carta-nombre-img carta-nombre-texto">${this.nombre}</span>`
-        const estiloFondo = this.imagen && this.claseCss.split(" ").includes("carta-personalizada")
-            ? ` style="background-image:url(${this.imagen})"`
+        const fondoHtml = this.claseCss.split(" ").includes("carta-personalizada")
+            ? `<img class="carta-fondo" src="${this.imagen}" alt="">`
             : ""
-        return `<label class="carta ${this.claseCss}"${estiloFondo}>` +
+        return `<label class="carta ${this.claseCss}">` +
             `<input type="radio" name="personaje" id="${this.id}" value="${this.id}">` +
+            `${fondoHtml}` +
             `${emblemaSVG(this.emblema)}` +
             `${nombreHtml}` +
             `<span class="carta-elemento">${this.elemento}</span>` +
@@ -83,6 +84,7 @@ function normalizarAtaques(ataques) {
 const NUM_BASE = 4
 const MAX_AGREGADOS = 5
 const MAX_TOTAL = NUM_BASE + MAX_AGREGADOS
+const PERSONAJES_ONLINE = []
 const PERSONAJES = [
     new Personaje({ id: "Zuko", nombre: "Zuko", imagen: "./assets/zuko.webp", nombreImg: "./assets/name-zuko.webp", genero: "o", elemento: "Nación del Fuego", claseCss: "carta-fuego", emblema: "fuego", esAgregado: false }),
     new Personaje({ id: "Aang", nombre: "Aang", imagen: "./assets/aang.webp", nombreImg: "./assets/name-aang.webp", genero: "o", elemento: "Nómadas del Aire", claseCss: "carta-aire", emblema: "aire", esAgregado: false }),
@@ -136,7 +138,8 @@ function emblemaSVG(tipo) {
 
 // Buscar un personaje del registro por id
 function buscarPersonaje(id) {
-    return PERSONAJES.find(function (p) { return p.id === id })
+    return PERSONAJES.find(function (p) { return p.id === id }) ||
+        PERSONAJES_ONLINE.find(function (p) { return p.id === id })
 }
 
 // Mapas de compatibilidad derivados del registro (misma forma que antes)
@@ -144,13 +147,39 @@ const imagenesPersonajes = {}
 const imagenesNombres = {}
 const generoPersonajes = {}
 function sincronizarMapas() {
-    PERSONAJES.forEach(function (p) {
+    PERSONAJES.concat(PERSONAJES_ONLINE).forEach(function (p) {
         imagenesPersonajes[p.id] = p.imagen
         imagenesNombres[p.id] = p.nombreImg || p.imagen
         generoPersonajes[p.id] = p.genero
     })
 }
 sincronizarMapas()
+
+function registrarPersonajeOnline(datos, rol) {
+    const nacion = datosNacionAgregada[datos.emblema]
+    if (!nacion) {
+        return null
+    }
+    const personaje = new Personaje({
+        id: "Online-" + rol + "-" + datos.id,
+        nombre: datos.nombre,
+        imagen: datos.imagen,
+        nombreImg: datos.nombreImg,
+        genero: datos.genero,
+        elemento: nacion.elemento,
+        claseCss: nacion.claseCss,
+        emblema: datos.emblema,
+        esAgregado: true
+    })
+    PERSONAJES_ONLINE.push(personaje)
+    sincronizarMapas()
+    return personaje
+}
+
+function limpiarPersonajesOnline() {
+    PERSONAJES_ONLINE.length = 0
+    sincronizarMapas()
+}
 
 // Datos base por elemento para personajes agregados desde el formulario.
 // Solo se aplican a tarjetas agregadas: fondo random_*.webp y color de nación
@@ -239,4 +268,3 @@ function actualizarEstadoFormulario() {
         aviso.textContent = "Límite alcanzado: máximo " + MAX_AGREGADOS + " personajes agregados (" + MAX_TOTAL + " en total)."
     }
 }
-

@@ -21,7 +21,22 @@
       <div id="etapa-1" class="etapa">
         <section id="seleccion-personaje" class="seccion" aria-labelledby="titulo-etapa-1">
             <img id="titulo-etapa-1" tabindex="-1" src="./assets/seleccionar-personaje.webp" alt="Seleccionar personaje" class="seccion-titulo">
-            <p class="descripcion-seccion">Cada carta es un maestro de una nación. Elige el tuyo para comenzar: el personaje enemigo se sortea al azar.</p>
+            <p class="descripcion-seccion">Cada carta es un maestro de una nación. Elige el tuyo para entrar al mapa y decidir contra quién combatir.</p>
+
+            <section class="panel-online" aria-labelledby="titulo-online">
+                <h2 id="titulo-online">Jugar online en la misma red</h2>
+                <p>Creá una sala y compartí el código con la otra persona, o unite a una sala existente.</p>
+                <div class="controles-online">
+                    <button id="boton-crear-sala" type="button" class="boton boton-secundario">Crear sala</button>
+                    <label class="campo-formulario" for="codigo-sala">Código de sala
+                        <input id="codigo-sala" type="text" maxlength="6" pattern="[A-Fa-f0-9]{6}" placeholder="ABC123" autocomplete="off" spellcheck="false">
+                    </label>
+                    <button id="boton-unirse-sala" type="button" class="boton boton-secundario">Unirme</button>
+                    <button id="boton-copiar-sala" type="button" class="boton boton-secundario" hidden>Copiar código</button>
+                </div>
+                <p id="estado-online" class="nota aviso" aria-live="polite">También podés seguir jugando contra la computadora.</p>
+                <p id="codigo-sala-visible" class="codigo-sala" aria-live="polite" hidden></p>
+            </section>
 
             <!-- Tarjetas coleccionables: se generan desde el registro PERSONAJES en js/avatar.js.
                  Cada etiqueta envuelve su radio button, así el click en la carta marca
@@ -45,33 +60,36 @@
                 <p id="aviso-personaje" class="nota aviso" aria-live="polite"></p>
             </form>
 
-            <button id="boton-personaje" type="button" class="boton boton-primario">Seleccionar</button>
+            <button id="boton-personaje" type="button" class="boton boton-primario">Jugar contra la computadora</button>
         </section>
       </div>
 
       <div id="etapa-2" class="etapa" hidden>
         <section id="ver-mapa" class="seccion" aria-labelledby="titulo-mapa" hidden>
             <h2 id="titulo-mapa">Arena del encuentro</h2>
-            <p class="descripcion-seccion">Usá las flechas del teclado o los botones de dirección para acercarte al rival. El duelo es al mejor de tres rondas.</p>
-            <canvas id="mapa" width="800" height="600" role="img" aria-label="Arena del encuentro: tu personaje a la izquierda, el rival a la derecha y, arriba, las barras de vida, la energía y las rondas ganadas"></canvas>
-            <p id="aviso-arena" class="nota" aria-live="polite">Acercate al rival para empezar el duelo.</p>
-            <!-- Clase 10: botones de dirección. Mueven mientras están apretados
-                 (mousedown sostiene la dirección, mouseup o mouseleave la sueltan).
+            <p id="instrucciones-mapa" class="descripcion-seccion">Movete con las flechas o los controles y acercate al personaje contra el que quieras combatir.</p>
+            <canvas id="mapa" width="800" height="600" role="img" aria-label="Mapa de encuentro con los personajes disponibles para elegir contra quién luchar"></canvas>
+            <p id="aviso-arena" class="nota" aria-live="polite">Acercate a un personaje para empezar el duelo.</p>
+            <!-- Botones de dirección: mantienen el movimiento mientras se presionan
+                 con puntero o teclado; al soltar, se detiene.
                  Desaparecen cuando empieza el duelo: ahí se juega por turnos. -->
             <div class="controles-mapa" role="group" aria-label="Mover el personaje en la arena">
-                <button type="button" id="boton-mover-arriba" class="boton boton-control" aria-keyshortcuts="ArrowUp">Arriba</button>
-                <button type="button" id="boton-mover-izquierda" class="boton boton-control" aria-keyshortcuts="ArrowLeft">Izquierda</button>
-                <button type="button" id="boton-mover-abajo" class="boton boton-control" aria-keyshortcuts="ArrowDown">Abajo</button>
-                <button type="button" id="boton-mover-derecha" class="boton boton-control" aria-keyshortcuts="ArrowRight">Derecha</button>
+                <button type="button" id="boton-mover-arriba" class="boton boton-primario boton-control" aria-keyshortcuts="ArrowUp">Arriba</button>
+                <button type="button" id="boton-mover-izquierda" class="boton boton-primario boton-control" aria-keyshortcuts="ArrowLeft">Izquierda</button>
+                <button type="button" id="boton-mover-abajo" class="boton boton-primario boton-control" aria-keyshortcuts="ArrowDown">Abajo</button>
+                <button type="button" id="boton-mover-derecha" class="boton boton-primario boton-control" aria-keyshortcuts="ArrowRight">Derecha</button>
             </div>
         </section>
-        <section id="seleccionar-ataque" class="seccion" aria-labelledby="titulo-etapa-2">
-            <img id="titulo-etapa-2" tabindex="-1" src="./assets/elegir-ataque.webp" alt="Elige tu ataque" class="seccion-titulo">
+      </div>
 
+      <div id="etapa-3" class="etapa" hidden>
+        <section id="seleccionar-ataque" class="seccion" aria-labelledby="titulo-etapa-3">
+            <h2 id="titulo-etapa-3" tabindex="-1">Batalla</h2>
+            <p class="descripcion-seccion">Elegí tus ataques y administrá la energía para ganar dos de las tres rondas.</p>
             <div class="marcador numeros-tabulares">
-                <p class="lado-jugador"><span class="quien">Tu personaje</span> <span class="marcador-ficha"><img id="personaje-jugador" class="marcador-foto" alt=""><span id="nombre-jugador" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-jugador">0</span> rondas</span></p>
+                <p class="lado-jugador"><span class="quien" id="etiqueta-jugador">Tu personaje</span> <span class="marcador-ficha"><img id="personaje-jugador" class="marcador-foto" alt=""><span id="nombre-jugador" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-jugador">0</span> rondas</span></p>
                 <span class="contra" aria-hidden="true">contra</span>
-                <p class="lado-enemigo"><span class="quien">Enemigo</span> <span class="marcador-ficha"><img id="personaje-enemigo" class="marcador-foto" alt=""><span id="nombre-enemigo" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-enemigo">0</span> rondas</span></p>
+                <p class="lado-enemigo"><span class="quien" id="etiqueta-enemigo">Enemigo</span> <span class="marcador-ficha"><img id="personaje-enemigo" class="marcador-foto" alt=""><span id="nombre-enemigo" class="marcador-nombre"></span></span><span class="vidas"><span id="vidas-enemigo">0</span> rondas</span></p>
             </div>
 
             <!-- #acciones-duelo lo llena duelo.js con los cuatro ataques del kit
@@ -88,9 +106,9 @@
         </section>
       </div>
 
-      <div id="etapa-3" class="etapa" hidden>
-        <section id="resultado-final" class="seccion" aria-labelledby="titulo-etapa-3">
-            <h2 id="titulo-etapa-3" tabindex="-1">Resultado del duelo</h2>
+      <div id="etapa-4" class="etapa" hidden>
+        <section id="resultado-final" class="seccion" aria-labelledby="titulo-etapa-4">
+            <h2 id="titulo-etapa-4" tabindex="-1">Resultado del duelo</h2>
             <p class="resultado-mensaje" id="resultado-final-mensaje" aria-live="polite"></p>
             <div class="carta-resultado-contenedor" id="cartas-final-contenedor"></div>
         </section>
@@ -135,7 +153,7 @@
             </table>
             <div class="acciones">
                 <button id="boton-jugar-nuevo" type="button" class="boton boton-primario">Jugar de nuevo</button>
-                <button id="boton-ver-reglas-etapa3" type="button" class="boton boton-secundario">Ver reglas</button>
+                <button id="boton-ver-reglas-etapa4" type="button" class="boton boton-secundario">Ver reglas</button>
             </div>
         </section>
 
@@ -215,6 +233,7 @@
     <script src="./js/seleccion.js"></script>
     <script src="./js/ranking.js"></script>
     <script src="./js/combate.js"></script>
+    <script src="./js/online.js"></script>
     <script src="./js/avatar.js"></script>
 
 </body>

@@ -59,8 +59,7 @@
     /* Radios concéntricos: panel 10px, elementos anidados 6px */
     --radio-tarjeta: 10px;
     --radio-interno: 6px;
-    /* Radio propio de las cartas: a 10px se veían casi rectas. */
-    --radio-carta: 20px;
+    --radio-carta: 7px;
 }
 
 /* --------------------------------------------------------------------------
@@ -109,13 +108,6 @@ html {
     scrollbar-color: var(--trazo) var(--papel-profundo);
     /* Reservar el ancho de la barra evita el salto de layout al congelar el scroll. */
     scrollbar-gutter: stable;
-}
-
-/* Durante la pelea la página no se mueve: ni horizontal ni vertical.
-   mapa.js pone y saca esta clase al entrar y salir de la arena. */
-html.arena-en-duelo,
-html.arena-en-duelo body {
-    overflow: hidden;
 }
 
 a {
@@ -276,11 +268,13 @@ h2[tabindex="-1"]:focus {
    Cartas (elemento distintivo del sitio)
    -------------------------------------------------------------------------- */
 .cartas {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: center;
-    align-content: flex-start;
-    gap: var(--gap-interno-grande);
+    gap: var(--gap-interno);
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
     max-height: 580px;
     overflow-y: auto;
     padding: 4px 4px 8px;
@@ -294,16 +288,14 @@ h2[tabindex="-1"]:focus {
     align-items: center;
     justify-content: flex-end;
     gap: var(--gap-interno);
-    flex: 0 0 180px;
-    width: 180px;
-    min-width: 180px;
-    max-width: 180px;
-    height: 260px;
-    min-height: 260px;
-    max-height: 260px;
-    aspect-ratio: 180 / 260;
-    flex-shrink: 0;
-    padding: 14px var(--gap-interno-grande) var(--gap-interno-grande);
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 225 / 325;
+    padding: 10px var(--gap-interno) var(--gap-interno);
     background-color: var(--papel-profundo);
     border: 1px solid var(--trazo);
     border-radius: var(--radio-carta);
@@ -343,12 +335,16 @@ h2[tabindex="-1"]:focus {
 .carta-agua  { background-image: url("../assets/katara.webp"); }
 .carta-tierra{ background-image: url("../assets/toph.webp"); }
 
-/* Tarjetas agregadas: fondo random por nación (vía style inline) + nombre
-   en fuente Spell of Asia con color de nación. Solo aplica a agregadas. */
-.carta-personalizada {
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
+/* Tarjetas agregadas: imagen de nación en .carta-fondo + nombre Spell of Asia. */
+.cartas label > .carta-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    pointer-events: none;
 }
 
 .carta-nacion-fuego { --color-nacion: var(--fuego); }
@@ -396,6 +392,49 @@ h2[tabindex="-1"]:focus {
 }
 
 /* Formulario de personaje: contador y estados deshabilitados */
+.panel-online {
+    margin-block: var(--gap-interno-grande);
+    padding: var(--gap-interno-grande);
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-tarjeta);
+    background-color: var(--papel-profundo);
+}
+
+.panel-online h2,
+.panel-online > p {
+    margin-block: 0 var(--gap-interno);
+}
+
+.controles-online {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--gap-interno);
+}
+
+.controles-online .campo-formulario {
+    min-width: 150px;
+}
+
+#codigo-sala {
+    width: 150px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--trazo);
+    border-radius: var(--radio-interno);
+    background-color: var(--papel);
+    color: var(--tinta);
+    font: 600 1rem var(--fuente-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.codigo-sala {
+    margin-block: var(--gap-interno) 0;
+    font: 700 1.25rem var(--fuente-mono);
+    letter-spacing: 0.16em;
+}
+
 .formulario-personaje {
     display: flex;
     flex-wrap: wrap;
@@ -1241,6 +1280,10 @@ strong:empty::before {
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+}
+
+.controles-mapa .boton-control:hover:not(:disabled) {
+    background-color: var(--sello-oscuro);
 }
 
 #boton-mover-arriba {

@@ -1,4 +1,4 @@
-// Mapa del encuentro (canvas, clases 9-11)
+// Mapa del encuentro (canvas, clases 9-12)
 // Encuadre, loop de requestAnimationFrame, movimiento con teclado y botones.
 // E0: corte mecánico de avatar.js. Sin cambios de comportamiento.
 
@@ -9,10 +9,7 @@ const sectionVerMapa = document.getElementById("ver-mapa")
 const mapa = document.getElementById("mapa")
 let lienzo = null
 
-// E1: la arena es el juego. El canvas tiene tres fases:
-//   acercamiento -> el jugador camina hacia el rival
-//   anuncio      -> contacto: se frena el movimiento y entra el cartel ROUND 1
-//   duelo        -> turnos sobre el mismo canvas, con el HUD de vida
+// La arena tiene tres fases: exploración, anuncio al tocar un rival y duelo por turnos.
 const FASE_ACERCAMIENTO = "acercamiento"
 const FASE_ANUNCIO = "anuncio"
 const FASE_DUELO = "duelo"
@@ -20,17 +17,13 @@ const DURACION_ANUNCIO_MS = 1100
 // Cartel corto entre rondas: K.O. y la presentación de la ronda siguiente.
 const DURACION_CORTE_MS = 900
 // Cartel del cierre de la partida (VICTORIA / DERROTA / EMPATE): dura un poco
-// más que el K.O. para que se lea antes de pasar a la etapa 3.
+// más que el K.O. para que se lea antes de pasar a la etapa 4.
 const DURACION_FINAL_MS = 1500
-// Separación horizontal (px) a la que se considera que hay contacto con el rival.
-const DISTANCIA_ENCUENTRO = 24
-// Banda vertical donde el encuentro cuenta: si el jugador sube o baja demasiado, no hay choque.
-const BANDA_ENCUENTRO = 40
-
 const controlesMapa = document.querySelector(".controles-mapa")
 const sectionAtaques = document.getElementById("seleccionar-ataque")
 const sectionRegistro = document.getElementById("registro-combate")
 const avisoArena = document.getElementById("aviso-arena")
+const instruccionesMapa = document.getElementById("instrucciones-mapa")
 // Loop del mapa: id de requestAnimationFrame y tiempo del cuadro anterior
 // (se usa para escalar la velocidad al refresco real de la pantalla).
 let animacionMapaId = null
@@ -42,10 +35,21 @@ let moviendoseMapa = false
 const FONDOS_MAPA = ["./assets/glaciares_bg.webp", "./assets/salon_bg.webp", "./assets/valle_bg.webp"]
 let fondoMapaActual = null
 
-// Clase 10: posición de cada personaje en el canvas (800x600) y velocidad.
-// El jugador arranca a la izquierda y el enemigo espera a la derecha.
-const CUADRO_JUGADOR = { x: 40, y: 160, lado: 280 }
-const CUADRO_ENEMIGO = { x: 480, y: 160, lado: 280 }
+// Posiciones distribuidas por la arena para que el jugador elija a quién desafiar.
+const TAMANO_PERSONAJE_MAPA = 130
+const CUADRO_JUGADOR = { x: 335, y: 235, lado: TAMANO_PERSONAJE_MAPA }
+const POSICIONES_ENEMIGOS_MAPA = [
+    { x: 20, y: 20, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 650, y: 20, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 20, y: 430, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 650, y: 430, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 235, y: 20, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 435, y: 20, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 235, y: 430, lado: TAMANO_PERSONAJE_MAPA },
+    { x: 435, y: 430, lado: TAMANO_PERSONAJE_MAPA }
+]
+const CUADRO_JUGADOR_BATALLA = { x: 35, y: 175, lado: 275 }
+const CUADRO_ENEMIGO_BATALLA = { x: 490, y: 175, lado: 275 }
 // Píxeles por cuadro tomando 60 fps como referencia (la velocidad se ajusta
 // al refresco real: 120 Hz o 144 Hz se mueven igual, no el doble).
 const VELOCIDAD_MAPA = 5
@@ -54,6 +58,7 @@ const CUADRO_REFERENCIA_MS = 1000 / 60
 // Instancias que se están pintando en el mapa.
 let personajeMapaJugador = null
 let personajeMapaEnemigo = null
+let personajesMapaEnemigos = []
 
 // Estado de la arena que no pertenece a ningún personaje.
 let faseArena = FASE_ACERCAMIENTO
@@ -75,13 +80,29 @@ let vinetaArena = null
 // Clase 10 y 11: las dos entradas de movimiento del jugador.
 // Se guarda la dirección activa de cada una y se calcula la velocidad una sola vez.
 const teclasMapa = new Set()
-let botonMapa = null
+const botonesMapa = new Map()
 // Equivalencia tecla -> dirección (es el switch (event.key) de la clase 11, en tabla).
 const DIRECCIONES_TECLA = {
     ArrowUp: "arriba",
     ArrowDown: "abajo",
     ArrowLeft: "izquierda",
     ArrowRight: "derecha"
+}
+
+function dibujarNombreEnemigoMapa(personaje) {
+    lienzo.save()
+    lienzo.font = '600 14px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif'
+    lienzo.textAlign = "center"
+    lienzo.textBaseline = "top"
+    lienzo.lineWidth = 4
+    lienzo.lineJoin = "round"
+    lienzo.strokeStyle = "#2B2118"
+    lienzo.fillStyle = "#F6EDD8"
+    const x = personaje.x + personaje.ancho / 2
+    const y = personaje.y + personaje.alto + 8
+    lienzo.strokeText(personaje.nombre, x, y, personaje.ancho + 24)
+    lienzo.fillText(personaje.nombre, x, y, personaje.ancho + 24)
+    lienzo.restore()
 }
 
 // Encajar una imagen en un cuadro cuadrado manteniendo el aspecto y centrada.
@@ -93,9 +114,8 @@ function encuadrarEnCuadro(x, y, lado, naturalAncho, naturalAlto) {
     return { x: x + (lado - ancho) / 2, y: y + (lado - alto) / 2, ancho: ancho, alto: alto }
 }
 
-// Radio de las cartas dibujadas en la arena. Es el mismo 20px de --radio-carta
-// (las cartas HTML), para que el canvas y la página hablen el mismo idioma.
-const RADIO_CARTA_ARENA = 20
+// Radio de las cartas dibujadas en la arena. Coincide con --radio-carta.
+const RADIO_CARTA_ARENA = 7
 
 // Contorno redondeado reutilizable: sirve para recortar la foto, para la sombra
 // y para el borde. `arcTo` anda en cualquier navegador, sin depender de roundRect.
@@ -140,7 +160,7 @@ function dibujarPersonajeMapa(personaje, x, y, lado, salto, desplazamientoX, tin
     // 1. Canto: la misma silueta corrida unos píxeles simula el espesor de la carta.
     lienzo.save()
     lienzo.fillStyle = "#1D1610"
-    trazadoCarta(izquierda + 4, arriba + 5, ancho, alto, RADIO_CARTA_ARENA)
+    trazadoCarta(izquierda + 2, arriba + 3, ancho, alto, RADIO_CARTA_ARENA)
     lienzo.fill()
     lienzo.restore()
 
@@ -158,9 +178,6 @@ function dibujarPersonajeMapa(personaje, x, y, lado, salto, desplazamientoX, tin
     lienzo.save()
     trazadoCarta(izquierda, arriba, ancho, alto, RADIO_CARTA_ARENA)
     lienzo.clip()
-    lienzo.lineWidth = 5
-    lienzo.strokeStyle = "#2B2118"
-    lienzo.strokeRect(izquierda, arriba, ancho, alto)
     lienzo.drawImage(foto, izquierda, arriba, ancho, alto)
     if (tinte && tinte.alfa > 0.01) {
         lienzo.globalAlpha = Math.min(0.75, tinte.alfa)
@@ -178,13 +195,13 @@ function dibujarPersonajeMapa(personaje, x, y, lado, salto, desplazamientoX, tin
     lienzo.fillRect(izquierda, arriba, ancho, alto)
     lienzo.restore()
 
-    // 5. Bisel: filo oscuro por fuera y brillo de 1.5px por dentro.
+    // 5. Bisel fino con el brillo interior desplazado 2px.
     lienzo.save()
-    lienzo.lineWidth = 3
+    lienzo.lineWidth = 2
     lienzo.strokeStyle = "#2B2118"
     trazadoCarta(izquierda, arriba, ancho, alto, RADIO_CARTA_ARENA)
     lienzo.stroke()
-    lienzo.lineWidth = 1.5
+    lienzo.lineWidth = 1
     lienzo.strokeStyle = "rgba(255, 246, 232, 0.32)"
     trazadoCarta(izquierda + 2, arriba + 2, ancho - 4, alto - 4, RADIO_CARTA_ARENA - 2)
     lienzo.stroke()
@@ -363,8 +380,8 @@ function dibujarImpactoEnObjetivo(evento, jugador) {
         dibujarImpactoArena(evento, jugador.x, jugador.y, jugador.ancho)
         return
     }
-    if (evento.objetivo === "enemigo") {
-        dibujarImpactoArena(evento, CUADRO_ENEMIGO.x, CUADRO_ENEMIGO.y, CUADRO_ENEMIGO.lado)
+    if (evento.objetivo === "enemigo" && personajeMapaEnemigo) {
+        dibujarImpactoArena(evento, personajeMapaEnemigo.x, personajeMapaEnemigo.y, personajeMapaEnemigo.ancho)
     }
 }
 
@@ -415,10 +432,19 @@ function dibujarCuadroMapa(tiempo, deltaMs) {
     lienzo.translate(sacudida.x, sacudida.y)
     dibujarFondoMapa(MARGEN_SACUDIDA)
     dibujarAtmosferaArena(MARGEN_SACUDIDA)
-    dibujarPersonajeMapa(
-        personajeMapaEnemigo, CUADRO_ENEMIGO.x, CUADRO_ENEMIGO.y, CUADRO_ENEMIGO.lado, 0,
-        visual.desplazamientoEnemigo, visual.tinteEnemigo
-    )
+    if (faseArena === FASE_ACERCAMIENTO) {
+        personajesMapaEnemigos.forEach(function (enemigo) {
+            dibujarPersonajeMapa(enemigo, enemigo.x, enemigo.y, enemigo.ancho, 0, 0, null)
+            dibujarNombreEnemigoMapa(enemigo)
+        })
+    }
+    else if (personajeMapaEnemigo) {
+        dibujarPersonajeMapa(
+            personajeMapaEnemigo, personajeMapaEnemigo.x, personajeMapaEnemigo.y,
+            personajeMapaEnemigo.ancho, 0, visual.desplazamientoEnemigo, visual.tinteEnemigo
+        )
+        dibujarNombreEnemigoMapa(personajeMapaEnemigo)
+    }
     if (personajeMapaJugador) {
         dibujarPersonajeMapa(
             personajeMapaJugador, personajeMapaJugador.x, personajeMapaJugador.y, personajeMapaJugador.ancho, salto,
@@ -430,8 +456,15 @@ function dibujarCuadroMapa(tiempo, deltaMs) {
     if (personajeMapaJugador) {
         dibujarFlotanteArena(visual.flotanteJugador, personajeMapaJugador.x, personajeMapaJugador.y, personajeMapaJugador.ancho)
     }
-    dibujarFlotanteArena(visual.flotanteEnemigo, CUADRO_ENEMIGO.x, CUADRO_ENEMIGO.y, CUADRO_ENEMIGO.lado)
-    dibujarHudArena(lienzo, estadoHudArena(tiempo))
+    if (personajeMapaEnemigo) {
+        dibujarFlotanteArena(
+            visual.flotanteEnemigo, personajeMapaEnemigo.x, personajeMapaEnemigo.y,
+            personajeMapaEnemigo.ancho
+        )
+    }
+    if (faseArena !== FASE_ACERCAMIENTO) {
+        dibujarHudArena(lienzo, estadoHudArena(tiempo))
+    }
 }
 
 // Oscurecer y viñetear el fondo para que los luchadores y el HUD resalten.
@@ -523,24 +556,30 @@ function actualizarBarrasVida(deltaMs) {
     destelloEnemigo = Math.max(0, destelloEnemigo - delta / 320)
 }
 
-// Fase de acercamiento: ¿el jugador ya está lo bastante cerca del rival?
-function jugadorAlcanzaRival() {
+// Fase de exploración: devuelve el primer personaje que se superpone al jugador.
+function enemigoEnColision() {
     const jugador = personajeMapaJugador
-    if (!jugador || !personajeMapaEnemigo) {
-        return false
+    if (!jugador) {
+        return null
     }
-    const distancia = CUADRO_ENEMIGO.x - (jugador.x + jugador.ancho)
-    const arribaJugador = jugador.y
-    const abajoJugador = jugador.y + jugador.alto
-    const arribaEnemigo = CUADRO_ENEMIGO.y + BANDA_ENCUENTRO
-    const abajoEnemigo = CUADRO_ENEMIGO.y + CUADRO_ENEMIGO.lado - BANDA_ENCUENTRO
-    return distancia <= DISTANCIA_ENCUENTRO && abajoJugador > arribaEnemigo && arribaJugador < abajoEnemigo
+    return personajesMapaEnemigos.find(function (enemigo) {
+        return jugador.x < enemigo.x + enemigo.ancho &&
+            jugador.x + jugador.ancho > enemigo.x &&
+            jugador.y < enemigo.y + enemigo.alto &&
+            jugador.y + jugador.alto > enemigo.y
+    }) || null
 }
 
 // Avanza una sola vez por transición: en los cuadros siguientes ya no entra.
 function revisarEncuentro(tiempo) {
     if (faseArena === FASE_ACERCAMIENTO) {
-        if (jugadorAlcanzaRival()) {
+        const enemigo = enemigoEnColision()
+        if (enemigo && seleccionarPersonajeEnemigo(enemigo)) {
+            personajeMapaEnemigo = enemigo
+            reiniciarPosicionMapa(personajeMapaJugador, CUADRO_JUGADOR_BATALLA)
+            reiniciarPosicionMapa(personajeMapaEnemigo, CUADRO_ENEMIGO_BATALLA)
+            personajesMapaEnemigos = []
+            mostrarEtapa(3)
             iniciarAnuncioDuelo(tiempo)
         }
         return
@@ -571,37 +610,18 @@ function mostrarAnuncio(texto, duracion, accion, tiempo) {
 // Contacto: se frena al jugador y entra el cartel. Todavía no se puede atacar.
 function iniciarAnuncioDuelo(tiempo) {
     teclasMapa.clear()
-    botonMapa = null
+    botonesMapa.clear()
     aplicarVelocidadMapa()
     if (controlesMapa) {
         controlesMapa.hidden = true
     }
     if (avisoArena) {
-        avisoArena.textContent = "¡Empieza el duelo!"
+        avisoArena.textContent = "¡Encontraste a " + personajeMapaEnemigo.nombre + "! Empieza el duelo."
+    }
+    if (instruccionesMapa) {
+        instruccionesMapa.textContent = "El duelo contra " + personajeMapaEnemigo.nombre + " se juega en esta arena."
     }
     mostrarAnuncio("ROUND 1", DURACION_ANUNCIO_MS, empezarDuelo, tiempo)
-}
-
-// E6: congelar la página durante la pelea. La clase va en <html> porque ahí vive
-// el scroll del documento; se saca al cerrar la partida o al salir de la arena.
-function bloquearScrollArena() {
-    document.documentElement.classList.add("arena-en-duelo")
-}
-
-function liberarScrollArena() {
-    document.documentElement.classList.remove("arena-en-duelo")
-}
-
-// Antes de congelar el scroll hay que dejar los ataques a la vista: con la página
-// inmóvil, lo que quede fuera de pantalla ya no se puede alcanzar.
-function asegurarArenaVisible() {
-    if (!sectionAtaques || typeof sectionAtaques.getBoundingClientRect !== "function") {
-        return
-    }
-    const caja = sectionAtaques.getBoundingClientRect()
-    if (caja.top < 0 || caja.bottom > window.innerHeight) {
-        sectionAtaques.scrollIntoView({ block: "center" })
-    }
 }
 
 // El cartel terminó: arranca la ronda 1 y se habilitan los ataques.
@@ -617,13 +637,16 @@ function empezarDuelo() {
     if (avisoArena) {
         avisoArena.textContent = "Duelo en curso. Elegí uno de tus cuatro ataques."
     }
-    asegurarArenaVisible()
-    bloquearScrollArena()
     enfocarPrimerAtaque()
 }
 
 // Tras el K.O.: o entra la ronda siguiente, o se cierra la partida.
 function continuarTrasRonda() {
+    if (esPartidaOnline()) {
+        anunciarArena("Esperando que ambos jugadores estén listos para continuar…")
+        confirmarRondaOnline()
+        return
+    }
     const paso = siguientePasoArena()
     if (paso.tipo === "ronda") {
         nuevaRondaArena()
@@ -638,7 +661,7 @@ function continuarTrasRonda() {
         return
     }
     // Cierre de la partida: el K.O. ya se vio, así que la arena anuncia el
-    // resultado antes de pasar a la etapa 3. Sin este cartel el duelo cortaba
+    // resultado antes de pasar a la etapa 4. Sin este cartel el duelo cortaba
     // en seco justo después del golpe final.
     mostrarAnuncio(textoFinalArena(), DURACION_FINAL_MS, terminarPartida)
 }
@@ -675,8 +698,86 @@ function prepararArena() {
         sectionRegistro.hidden = true
     }
     if (avisoArena) {
-        avisoArena.textContent = "Acercate al rival para empezar el duelo."
+        avisoArena.textContent = "Acercate a un personaje para empezar el duelo."
     }
+    if (instruccionesMapa) {
+        instruccionesMapa.textContent = "Movete con las flechas o los controles y acercate al personaje contra el que quieras combatir."
+    }
+}
+
+function iniciarPartidaOnline(mensaje) {
+    const seleccionados = mensaje && mensaje.personajes
+    if (!seleccionados || !seleccionados.host || !seleccionados.guest) {
+        actualizarInterfazOnline("El servidor no envió los personajes de ambos jugadores.")
+        return
+    }
+    const host = registrarPersonajeOnline(seleccionados.host, "host")
+    const guest = registrarPersonajeOnline(seleccionados.guest, "guest")
+    if (!host || !guest) {
+        actualizarInterfazOnline("No se pudieron cargar los personajes online.")
+        return
+    }
+    personajeJugador = host.id
+    personajeEnemigo = guest.id
+    actualizarMarcador("jugador", personajeJugador)
+    actualizarMarcador("enemigo", personajeEnemigo)
+    const etiquetaJugador = document.getElementById("etiqueta-jugador")
+    const etiquetaEnemigo = document.getElementById("etiqueta-enemigo")
+    const soyHost = conexionOnline.rol === "host"
+    if (etiquetaJugador) {
+        etiquetaJugador.textContent = soyHost ? "Tu personaje" : "Rival"
+    }
+    if (etiquetaEnemigo) {
+        etiquetaEnemigo.textContent = soyHost ? "Rival" : "Tu personaje"
+    }
+
+    lienzo = mapa.getContext("2d")
+    personajeMapaJugador = host
+    personajeMapaEnemigo = guest
+    personajesMapaEnemigos = []
+    reiniciarPosicionMapa(host, CUADRO_JUGADOR_BATALLA)
+    reiniciarPosicionMapa(guest, CUADRO_ENEMIGO_BATALLA)
+    prepararArena()
+    faseArena = FASE_DUELO
+    const fondoPermitido = FONDOS_MAPA.includes(mensaje.fondo) ? mensaje.fondo : FONDOS_MAPA[0]
+    fondoMapaActual = new Image()
+    fondoMapaActual.src = fondoPermitido
+    if (controlesMapa) {
+        controlesMapa.hidden = true
+    }
+    if (sectionAtaques) {
+        sectionAtaques.hidden = false
+    }
+    if (sectionRegistro) {
+        sectionRegistro.hidden = false
+    }
+    const rival = conexionOnline.rol === "guest" ? host : guest
+    if (avisoArena) {
+        avisoArena.textContent = "Duelo online contra " + rival.nombre + ". Elegí tus ataques."
+    }
+    if (instruccionesMapa) {
+        instruccionesMapa.textContent = "Partida online: jugador 1 contra jugador 2."
+    }
+    sectionVerMapa.hidden = false
+    iniciarDueloArena()
+    mostrarEtapa(3)
+    iniciarAnimacionMapa()
+}
+
+function comenzarSiguienteRondaOnline(mensaje) {
+    nuevaRondaArena(mensaje.ronda)
+    mostrarAnuncio("ROUND " + mensaje.ronda, DURACION_CORTE_MS, function () {
+        faseArena = FASE_DUELO
+        reanudarRondaArena()
+        if (avisoArena) {
+            avisoArena.textContent = "Ronda " + mensaje.ronda + ". Elegí tu ataque."
+        }
+        enfocarPrimerAtaque()
+    })
+}
+
+function terminarPartidaOnline() {
+    mostrarAnuncio(textoFinalArena(), DURACION_FINAL_MS, terminarPartida)
 }
 
 // Clase 10: la posición se actualiza sumando la velocidad, y se limita al canvas
@@ -723,31 +824,36 @@ function definirMovimientoMapa(enMarcha) {
     moviendoseMapa = Boolean(enMarcha)
 }
 
-// Clase 10: los botones del mapa fijan la dirección mientras están apretados
-// (mousedown) y detenerMovimiento() la suelta (mouseup o mouseleave).
-function moverArriba() {
-    fijarBotonMapa("arriba")
+// Los botones mantienen el movimiento mientras se presionan con puntero o teclado.
+function moverArriba(origen) {
+    fijarBotonMapa("arriba", origen === undefined ? "puntero" : origen)
 }
 
-function moverAbajo() {
-    fijarBotonMapa("abajo")
+function moverAbajo(origen) {
+    fijarBotonMapa("abajo", origen === undefined ? "puntero" : origen)
 }
 
-function moverIzquierda() {
-    fijarBotonMapa("izquierda")
+function moverIzquierda(origen) {
+    fijarBotonMapa("izquierda", origen === undefined ? "puntero" : origen)
 }
 
-function moverDerecha() {
-    fijarBotonMapa("derecha")
+function moverDerecha(origen) {
+    fijarBotonMapa("derecha", origen === undefined ? "puntero" : origen)
 }
 
-function fijarBotonMapa(direccion) {
-    botonMapa = direccion
+function fijarBotonMapa(direccion, origen) {
+    botonesMapa.set(origen, direccion)
+    aplicarVelocidadMapa()
+}
+
+function soltarBotonMapa(origen) {
+    botonesMapa.delete(origen)
     aplicarVelocidadMapa()
 }
 
 function detenerMovimiento() {
-    botonMapa = null
+    teclasMapa.clear()
+    botonesMapa.clear()
     aplicarVelocidadMapa()
 }
 
@@ -766,9 +872,9 @@ function aplicarVelocidadMapa() {
         return
     }
     const activas = new Set(teclasMapa)
-    if (botonMapa) {
-        activas.add(botonMapa)
-    }
+    botonesMapa.forEach(function (direccion) {
+        activas.add(direccion)
+    })
     let velocidadX = 0
     let velocidadY = 0
     if (activas.has("izquierda")) {
@@ -816,11 +922,12 @@ function seSoltoUnaTecla(event) {
 
 // Botones de dirección del mapa: se enganchan una sola vez al iniciar el juego.
 const CONTROLES_MAPA = [
-    { id: "boton-mover-arriba", mover: moverArriba },
-    { id: "boton-mover-izquierda", mover: moverIzquierda },
-    { id: "boton-mover-abajo", mover: moverAbajo },
-    { id: "boton-mover-derecha", mover: moverDerecha }
+    { id: "boton-mover-arriba", direccion: "arriba", mover: moverArriba },
+    { id: "boton-mover-izquierda", direccion: "izquierda", mover: moverIzquierda },
+    { id: "boton-mover-abajo", direccion: "abajo", mover: moverAbajo },
+    { id: "boton-mover-derecha", direccion: "derecha", mover: moverDerecha }
 ]
+const EVENTOS_LIBERAR_BOTON = ["pointerup", "pointercancel", "lostpointercapture"]
 
 function configurarControlesMapa() {
     CONTROLES_MAPA.forEach(function (control) {
@@ -828,9 +935,35 @@ function configurarControlesMapa() {
         if (!boton) {
             return
         }
-        boton.addEventListener("mousedown", control.mover)
-        boton.addEventListener("mouseup", detenerMovimiento)
-        boton.addEventListener("mouseleave", detenerMovimiento)
+        boton.addEventListener("pointerdown", function (evento) {
+            if (evento.pointerType === "mouse" && evento.button !== 0) {
+                return
+            }
+            evento.preventDefault()
+            boton.setPointerCapture(evento.pointerId)
+            control.mover(evento.pointerId)
+        })
+        EVENTOS_LIBERAR_BOTON.forEach(function (tipo) {
+            boton.addEventListener(tipo, function (evento) {
+                soltarBotonMapa(evento.pointerId)
+            })
+        })
+        boton.addEventListener("keydown", function (evento) {
+            if ((evento.key !== " " && evento.key !== "Enter") || evento.repeat) {
+                return
+            }
+            evento.preventDefault()
+            fijarBotonMapa(control.direccion, "teclado:" + control.id)
+        })
+        boton.addEventListener("keyup", function (evento) {
+            if (evento.key === " " || evento.key === "Enter") {
+                evento.preventDefault()
+                soltarBotonMapa("teclado:" + control.id)
+            }
+        })
+        boton.addEventListener("blur", function () {
+            soltarBotonMapa("teclado:" + control.id)
+        })
     })
 }
 
@@ -847,22 +980,30 @@ function reiniciarPosicionMapa(personaje, cuadro) {
     personaje.velocidadY = 0
 }
 
-// Clase 11: iniciarMapa reúne lo que la clase dejaba suelto en seleccionarPersonajeJugador.
-// Resuelve el personaje elegido, prepara el fondo y engancha loop + listeners
-// del teclado una sola vez por partida.
+// Prepara el personaje elegido y el resto del elenco para explorar la arena.
+// El rival se define después, cuando el jugador colisiona con uno de ellos.
 function iniciarMapa() {
     if (!sectionVerMapa || !mapa || typeof mapa.getContext !== "function") {
         return
     }
     lienzo = mapa.getContext("2d")
     personajeMapaJugador = buscarPersonaje(personajeJugador) || null
-    personajeMapaEnemigo = buscarPersonaje(personajeEnemigo) || null
+    personajeMapaEnemigo = null
+    personajesMapaEnemigos = PERSONAJES.filter(function (personaje) {
+        return personaje.id !== personajeJugador
+    })
     if (!personajeMapaJugador) {
         return
     }
+    if (personajesMapaEnemigos.length > POSICIONES_ENEMIGOS_MAPA.length) {
+        throw new Error("No hay suficientes posiciones para dibujar todos los rivales en el mapa.")
+    }
     reiniciarPosicionMapa(personajeMapaJugador, CUADRO_JUGADOR)
+    personajesMapaEnemigos.forEach(function (enemigo, indice) {
+        reiniciarPosicionMapa(enemigo, POSICIONES_ENEMIGOS_MAPA[indice])
+    })
     teclasMapa.clear()
-    botonMapa = null
+    botonesMapa.clear()
     prepararArena()
     aplicarVelocidadMapa()
     fondoMapaActual = new Image()
@@ -875,6 +1016,7 @@ function iniciarMapa() {
     sectionVerMapa.hidden = false
     window.addEventListener("keydown", sePresionoUnaTecla)
     window.addEventListener("keyup", seSoltoUnaTecla)
+    window.addEventListener("blur", detenerMovimiento)
     iniciarAnimacionMapa()
 }
 
@@ -884,10 +1026,12 @@ function ocultarMapa() {
     detenerAnimacionMapa()
     window.removeEventListener("keydown", sePresionoUnaTecla)
     window.removeEventListener("keyup", seSoltoUnaTecla)
+    window.removeEventListener("blur", detenerMovimiento)
     teclasMapa.clear()
-    botonMapa = null
+    botonesMapa.clear()
     personajeMapaJugador = null
     personajeMapaEnemigo = null
+    personajesMapaEnemigos = []
     moviendoseMapa = false
     // Volver la arena a su estado inicial para la próxima partida.
     faseArena = FASE_ACERCAMIENTO
@@ -903,7 +1047,6 @@ function ocultarMapa() {
     vidaJugadorPrevio = 100
     vidaEnemigoPrevio = 100
     reiniciarDueloArena()
-    liberarScrollArena()
     if (sectionVerMapa) {
         sectionVerMapa.hidden = true
     }

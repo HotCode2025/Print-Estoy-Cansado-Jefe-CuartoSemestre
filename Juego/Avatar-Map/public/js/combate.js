@@ -16,15 +16,12 @@ function iniciarCombate() {
 function terminarPartida() {
     deshabilitarAtaques()
     document.getElementById("reiniciar").hidden = true
-    // La pelea terminó: la página vuelve a scrollear para la etapa 3.
-    liberarScrollArena()
-
     const resultado = resultadoPartidaArena()
     const ranking = actualizarRanking(resultado)
 
     mostrarResultadoFinal(resultado)
     renderizarRanking(ranking)
-    mostrarEtapa(3)
+    mostrarEtapa(4)
 }
 
 // Leer el ranking persistente o devolver valores iniciales
@@ -81,29 +78,31 @@ function renderizarRanking(ranking) {
         "Racha: " + datos.racha + " (mejor: " + datos.mejorRacha + ")."
 }
 
-// Mostrar el resultado final dentro de la etapa 3 reutilizando crearCartaModal
+// Mostrar el resultado final dentro de la etapa 4 reutilizando crearCartaModal
 function mostrarResultadoFinal(resultado) {
-    const titulo = document.getElementById("titulo-etapa-3")
+    const titulo = document.getElementById("titulo-etapa-4")
     const mensaje = document.getElementById("resultado-final-mensaje")
     const contenedor = document.getElementById("cartas-final-contenedor")
 
     mensaje.classList.remove("ganaste", "perdiste", "empate")
 
+    const idLocal = esPartidaOnline() ? idPersonajeLocal() : personajeJugador
+    const idRival = esPartidaOnline() ? idPersonajeRival() : personajeEnemigo
     if (resultado === "EMPATE") {
         titulo.innerHTML = "Empate"
         mensaje.innerHTML = "Ambos luchadores caen..."
         mensaje.classList.add("empate")
     }
     else if (resultado === "GANASTE") {
-        const perdedor = personajeEnemigo
+        const perdedor = buscarPersonaje(idRival)
         titulo.innerHTML = "Victoria"
-        mensaje.innerHTML = "¡" + perdedor + " ha sido derrotad" + generoPersonajes[perdedor] + "!"
+        mensaje.innerHTML = "¡" + perdedor.nombre + " ha sido derrotad" + generoPersonajes[idRival] + "!"
         mensaje.classList.add("ganaste")
     }
     else {
-        const caido = personajeJugador
+        const caido = buscarPersonaje(idLocal)
         titulo.innerHTML = "Derrota"
-        mensaje.innerHTML = caido + " ha caído en batalla"
+        mensaje.innerHTML = caido.nombre + " ha caído en batalla"
         mensaje.classList.add("perdiste")
     }
 
@@ -123,11 +122,11 @@ function mostrarResultadoFinal(resultado) {
 
     contenedor.innerHTML =
         '<div class="duelo-cartas">' +
-            '<div class="duelo-carta ' + claseJugador + '">' + crearCartaModal(personajeJugador) + '</div>' +
+            '<div class="duelo-carta ' + claseJugador + '">' + crearCartaModal(idLocal) + '</div>' +
             '<div class="duelo-centro">' +
                 '<span class="duelo-vs">VS</span>' +
             '</div>' +
-            '<div class="duelo-carta ' + claseEnemigo + '">' + crearCartaModal(personajeEnemigo) + '</div>' +
+            '<div class="duelo-carta ' + claseEnemigo + '">' + crearCartaModal(idRival) + '</div>' +
         '</div>'
 
     requestAnimationFrame(function () {
@@ -139,10 +138,10 @@ function mostrarResultadoFinal(resultado) {
 }
 
 // Mostrar el modal con las dos cartas enfrentadas, ganador y perdedor
-// Compatibilidad: ahora el resultado vive en la etapa 3; el diálogo queda sin uso.
+// Compatibilidad: el resultado vive en la etapa 4; el diálogo queda sin uso.
 function mostrarModalResultado(resultado) {
     mostrarResultadoFinal(resultado)
-    mostrarEtapa(3)
+    mostrarEtapa(4)
 }
 
 // Color de nación para el nombre en texto de personajes agregados (misma paleta del CSS).

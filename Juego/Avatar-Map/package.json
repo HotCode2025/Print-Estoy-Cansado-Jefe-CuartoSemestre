@@ -1,0 +1,13 @@
+{
+  "name": "avatar-map",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Juego Avatar-Map con partidas online por WebSocket en red local",
+  "scripts": {
+    "start": "node servidor.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

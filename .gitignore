@@ -5,6 +5,7 @@
 # Build output (Maven/Gradle) - cubre cualquier proyecto futuro
 target/
 build/
+Juego/Avatar-Map/node_modules/
 
 # IDE
 .idea/

@@ -4,9 +4,9 @@ Proyecto desarrollado con **HTML, CSS y JavaScript** como parte de la materia de
 
 ## Descripción
 
-Este juego está inspirado en *La Leyenda de Aang: El Avatar*. El jugador debe seleccionar un personaje y enfrentarse a un enemigo controlado por la computadora.
+Este juego está inspirado en *La Leyenda de Aang: El Avatar*. Primero se elige un personaje, luego se recorre una arena para elegir con quién combatir y finalmente se juega un duelo por turnos.
 
-Una vez seleccionados los personajes, el jugador entra a la arena del canvas, se acerca al rival y lo enfrenta en un duelo por turnos al mejor de tres rondas.
+La arena dibujada en un canvas muestra a los demás personajes disponibles. El jugador se mueve con las flechas o con los controles de pantalla; al colisionar con un personaje, ese pasa a ser su rival. El combate es al mejor de tres rondas.
 
 ---
 
@@ -23,12 +23,23 @@ Una vez seleccionados los personajes, el jugador entra a la arena del canvas, se
 
 El combate es un duelo **por turnos**, al mejor de tres rondas.
 
+### Jugar online en la misma red
+
+1. En la carpeta `Juego/Avatar-Map`, instalá las dependencias una sola vez con `npm install`.
+2. Iniciá el servidor con `npm start` y dejá la terminal abierta. Sirve el juego y coordina las salas en el puerto `5173`.
+3. En la computadora que ejecuta el servidor, buscá la dirección IPv4 de Wi-Fi con `ipconfig`. En ambos dispositivos abrí `http://IP-DE-LA-COMPUTADORA:5173/`; por ejemplo, `http://192.168.1.25:5173/`.
+4. En un dispositivo, elegí **Crear sala**. En el otro, escribí el código de seis caracteres y elegí **Unirme**.
+5. Cada jugador elige un personaje y confirma. El duelo empieza cuando ambos están listos; cada uno elige sus ataques desde su propio dispositivo.
+
+Permití Node.js en la red privada si Windows Firewall lo solicita. Los dos dispositivos deben poder conectarse a la computadora que ejecuta el servidor. El modo contra la computadora sigue disponible cuando no se crea ni se une a una sala. Este servidor está pensado para una red local confiable: no abras ni reenvíes su puerto hacia Internet.
+
 ### Cómo se juega
 
-1. Elegís un personaje y entrás a la arena. Movés tu luchador con las flechas o los botones de dirección hasta el rival.
-2. Al hacer contacto empieza el duelo: elegís uno de tus cuatro ataques y el rival elige el suyo sin ver tu elección.
-3. Los golpes se resuelven por velocidad, gastan energía y la definitiva queda en recarga.
-4. Gana la ronda quien deja al otro en 0 de vida. Si la ronda llega a 24 turnos, la cierra quien tenga más vida (con la misma vida es empate). La partida la gana quien suma primero dos rondas (o más rondas cuando se agotan las tres).
+1. Elegís un personaje y entrás a la arena, donde aparecen los demás personajes disponibles.
+2. Movés tu luchador con las flechas o los botones de dirección y elegís a quién desafiar al tocarlo.
+3. Al hacer contacto empieza el duelo: elegís uno de tus cuatro ataques y el rival elige el suyo sin ver tu elección.
+4. Los golpes se resuelven por velocidad, gastan energía y la definitiva queda en recarga.
+5. Gana la ronda quien deja al otro en 0 de vida. Si la ronda llega a 24 turnos, la cierra quien tenga más vida (con la misma vida es empate). La partida la gana quien suma primero dos rondas (o más rondas cuando se agotan las tres).
 
 ### Ataques
 
@@ -155,8 +166,8 @@ La sección debe ser accesible sin interferir con la jugabilidad.
 
 ### Implementado
 
-* Selección de personaje y selección aleatoria del enemigo.
-* Arena en canvas con acercamiento, movimiento con flechas y botones, y loop de repintado.
+* Selección de personaje y elección del rival mediante colisión en el mapa.
+* Arena en canvas con los personajes disponibles, movimiento con flechas y botones, detección de colisión y selección del rival al tocarlo.
 * Duelo por turnos con vida de 100, energía, kits por nación y rueda elemental.
 * Partida al mejor de tres rondas, con reloj de turno y animación de cada golpe.
 * Cierre de partida con cartel final en la arena, cartas por luchador, ranking persistente con racha y reinicio limpio.
@@ -301,13 +312,13 @@ El motor y los kits son los que resuelven cada turno del duelo: la IA del rival 
 - **Animación por cola de eventos.** El turno se resuelve de inmediato en el motor, pero los golpes, las curaciones, los estados y los golpes cancelados se muestran en orden, cada uno con su duración. Mientras corre la cola los botones están bloqueados.
 - **Reloj de turno.** Tenés 12 segundos por turno. Si se agota, el motor ejecuta el ataque básico y el aviso lo dice antes del resumen del turno.
 - **Cierre de ronda.** Cuando la vida llega a 0, `mapa.js` muestra el cartel `K.O.` y después el `ROUND` siguiente con vida 100 y energía 0. Si la ronda se cierra por el tope de 24 turnos, el cartel dice `TIEMPO` y el registro agrega "por límite de turnos". La ronda cerrada queda en el registro de combate.
-- **Resultado de la partida.** Sale de las rondas ganadas, no de la vida que quedó en la última. Antes de pasar a la etapa 3, la arena anuncia `VICTORIA`, `DERROTA` o `EMPATE` en el canvas.
+- **Resultado de la partida.** Sale de las rondas ganadas, no de la vida que quedó en la última. Antes de pasar a la etapa 4, la arena anuncia `VICTORIA`, `DERROTA` o `EMPATE` en el canvas.
 
 ### Cierre de la partida
 
-Al terminar la última ronda, el K.O. y el cartel del resultado se ven en la arena y después entra la etapa 3.
+Al terminar la última ronda, el K.O. y el cartel del resultado se ven en la arena y después entra la etapa 4.
 
-- **Resultado.** El título (`Victoria`, `Derrota` o `Empate`) y el mensaje salen de las rondas ganadas. Las dos cartas del cierre se voltean y el perdedor queda en gris. Si el rival salió con el mismo personaje (el juego permite espejo), las dos cartas muestran el mismo arte.
+- **Resultado.** El título (`Victoria`, `Derrota` o `Empate`) y el mensaje salen de las rondas ganadas. Las dos cartas del cierre se voltean y el perdedor queda en gris.
 - **Resumen.** `Rondas 2 - 1: 3 jugadas, 2 ganadas, 1 perdida y 0 empatadas. Racha: 1 (mejor: 1).`
 - **Clasificación persistente.** Partidas, victorias, derrotas, empates, racha actual y mejor racha se guardan en `localStorage` bajo `avatarRanking` y sobreviven al reinicio. La racha cuenta partidas ganadas seguidas; una derrota o un empate la cortan, pero la mejor racha queda como récord.
 - **Ranking viejo.** Un ranking guardado antes de que existiera la racha se completa con 0 en lugar de romper la pantalla (`Ranking.sanear`).
@@ -318,10 +329,12 @@ Los números del balance (ventaja ×1.5, energía máxima 5, 12 segundos, 2 de 3
 
 ### Pulido de la arena (E6)
 
-- **Cartas con esquinas.** Las cartas de selección y las del cierre de partida usan `--radio-carta: 20px`. Los paneles de la página conservan los 10px de siempre: solo cambiaron las cartas.
-- **Cartas también en la arena.** Los retratos del combate se dibujan en el canvas con el mismo radio de 20px, más canto, sombra proyectada, luz de cara y bisel: se leen como cartas apoyadas sobre el mapa y no como rectángulos pegados. La foto del personaje no se deforma.
+- **Cartas con esquinas.** Las cartas usan `--radio-carta: 7px`.
+- **Cartas también en la arena.** Los retratos aumentan un 25% en el mapa y la batalla. Se dibujan con el mismo radio de 7px, un marco fino y un brillo interior alineado a 2px. La foto del personaje no se deforma.
+- **Fondos de la arena.** Al comenzar una partida se elige al azar uno de los fondos `*_bg.webp`; se mantiene el mismo en la exploración y durante el duelo.
+- **Personajes agregados.** Sus tarjetas muestran explícitamente la imagen `random_*` de su nación.
 - **Efectos especiales en cada movimiento.** El efecto se deriva del progreso del evento, sin azar, así el mismo turno se ve siempre igual: el golpe abre un núcleo, una onda y ocho chispas (más grande cuando hay ventaja elemental); la cura levanta destellos verdes; la quemadura deja brasas; el aturdimiento cierra un aro amarillo. Los golpes además sacuden el lienzo. Se pintan con mezcla aditiva para que se lean por encima del tinte rojo del luchador golpeado, y todo respeta `prefers-reduced-motion`.
-- **La página no se mueve durante la pelea.** Al empezar el duelo se agrega la clase `arena-en-duelo` a `<html>` y la página deja de scrollear en los dos ejes; se libera al cerrar la partida o salir de la arena. Antes de congelarla se asegura que los botones de ataque estén a la vista, y las flechas del teclado ya no arrastran la página ni durante el duelo.
+- **Scroll durante la pelea.** La página se puede desplazar durante el duelo para acceder al mapa y a los controles de ataque sin que el canvas quede recortado.
 
 ---
 

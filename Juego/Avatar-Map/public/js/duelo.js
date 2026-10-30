@@ -70,8 +70,8 @@ function iniciarDueloArena() {
 }
 
 // Ronda nueva: vida 100 y energía 0 otra vez, con el mismo rival.
-function nuevaRondaArena() {
-    rondaArena++
+function nuevaRondaArena(numero) {
+    rondaArena = numero || rondaArena + 1
     dueloArena = crearDueloArena()
     relojArena = RELOJ_TURNO_MS
     colaArena = []
@@ -105,9 +105,18 @@ function siguientePasoArena() {
     return { tipo: "ronda", numero: rondaArena + 1 }
 }
 
-// Resultado de la partida para la etapa 3. Se decide por rondas ganadas, no por
+// Resultado de la partida para la etapa 4. Se decide por rondas ganadas, no por
 // la vida que quedó: la vida es de cada ronda, las wins son de la partida.
 function resultadoPartidaArena() {
+    if (esPartidaOnline() && rolLocalArena() === "enemigo") {
+        if (winsEnemigo > winsJugador) {
+            return "GANASTE"
+        }
+        if (winsJugador > winsEnemigo) {
+            return "PERDISTE"
+        }
+        return "EMPATE"
+    }
     if (winsJugador > winsEnemigo) {
         return "GANASTE"
     }
@@ -119,11 +128,14 @@ function resultadoPartidaArena() {
 
 // Marcador de rondas ganadas para el resumen de cierre.
 function marcadorPartidaArena() {
+    if (esPartidaOnline() && rolLocalArena() === "enemigo") {
+        return { jugador: winsEnemigo, enemigo: winsJugador }
+    }
     return { jugador: winsJugador, enemigo: winsEnemigo }
 }
 
 // Cartel del cierre: el último K.O. ya se vio, así que la arena anuncia el
-// resultado de la partida antes de pasar a la etapa 3.
+// resultado de la partida antes de pasar a la etapa 4.
 function textoFinalArena() {
     const resultado = resultadoPartidaArena()
     if (resultado === "GANASTE") {
@@ -148,9 +160,21 @@ function cerrarRondaArena() {
     else if (ganador === "enemigo") {
         winsEnemigo++
     }
-    registrarRondaArena(ganador)
+    registrarRondaArena(ganadorLocalArena(ganador))
     actualizarMarcadorArena()
     actualizarBotonesArena()
+}
+
+function ganadorLocalArena(ganador) {
+    if (esPartidaOnline() && rolLocalArena() === "enemigo") {
+        if (ganador === "jugador") {
+            return "enemigo"
+        }
+        if (ganador === "enemigo") {
+            return "jugador"
+        }
+    }
+    return ganador
 }
 
 // Una línea por ronda terminada en el registro de combate de la página.
@@ -216,6 +240,17 @@ function elegirAtaqueArena(ataqueId, prefijo) {
     if (!dueloArena || turnoBloqueado || Motor.estaTerminado(dueloArena)) {
         return false
     }
+    if (esPartidaOnline()) {
+        const enviado = enviarAtaqueOnline(ataqueId, dueloArena.turno)
+        if (!enviado) {
+            anunciarArena("Se perdió la conexión con el servidor.")
+            return false
+        }
+        turnoBloqueado = true
+        actualizarBotonesArena()
+        anunciarArena("Ataque enviado. Esperando la elección del rival…")
+        return true
+    }
     const intento = Motor.elegir(dueloArena, "jugador", ataqueId)
     if (!intento.ok) {
         anunciarArena(motivoArena(intento.motivo))
@@ -244,19 +279,75 @@ function elegirAtaqueArena(ataqueId, prefijo) {
     return true
 }
 
+function aplicarTurnoOnline(mensaje) {
+    if (!dueloArena || !mensaje || mensaje.turno !== dueloArena.turno) {
+        anunciarArena("La partida quedó desincronizada. Reiniciá para volver a la selección.")
+        bloquearBotonesArena()
+        return
+    }
+    for (const rol of ["jugador", "enemigo"]) {
+        const intento = Motor.elegir(dueloArena, rol, mensaje.elecciones[rol])
+        if (!intento.ok) {
+            anunciarArena("No se pudo sincronizar el turno. Reiniciá la partida.")
+            bloquearBotonesArena()
+            return
+        }
+    }
+    const resultado = Motor.resolver(dueloArena)
+    if (!resultado.ok) {
+        anunciarArena("El turno no se pudo resolver. Reiniciá la partida.")
+        bloquearBotonesArena()
+        return
+    }
+    turnoBloqueado = true
+    relojArena = RELOJ_TURNO_MS
+    rondaPorTurnos = Boolean(resultado.porTurnos)
+    colaArena = construirColaArena(resultado)
+    eventoArena = null
+    eventoArenaRestante = 0
+    const resultadoServidor = mensaje.resultado
+    const estadoLocal = estadoDueloArena()
+    const estadoServidor = mensaje.estado
+    if (!resultadoServidor ||
+        resultadoServidor.ganador !== resultado.ganador ||
+        !estadoServidor ||
+        estadoLocal.jugador.vida !== estadoServidor.jugador.vida ||
+        estadoLocal.jugador.energia !== estadoServidor.jugador.energia ||
+        estadoLocal.enemigo.vida !== estadoServidor.enemigo.vida ||
+        estadoLocal.enemigo.energia !== estadoServidor.enemigo.energia) {
+        console.error("El resultado del motor local difiere del turno confirmado por el servidor.")
+    }
+    const rolLocal = rolLocalArena()
+    const rolesPorTiempo = Array.isArray(mensaje.porTiempo) ? mensaje.porTiempo : []
+    const prefijo = rolesPorTiempo.includes(rolLocal)
+        ? "Se acabó el tiempo: ataque básico."
+        : rolesPorTiempo.length > 0 ? "El rival se quedó sin tiempo." : ""
+    anunciarArena(prefijo ? prefijo + " " + textoUltimoTurno(resultado) : textoUltimoTurno(resultado))
+    actualizarInterfazOnline("Turno resuelto. Elegí tu próximo ataque.")
+    actualizarBotonesArena()
+}
+
+function rechazarAtaqueOnline(mensaje) {
+    turnoBloqueado = false
+    actualizarBotonesArena()
+    anunciarArena(mensaje || "El servidor rechazó el ataque. Elegí otra opción.")
+}
+
 // Resumen del turno para el aviso de la página. La acción fina se ve en el canvas.
 function textoUltimoTurno(resultado) {
     const partes = []
     for (const golpe of resultado.golpes) {
-        const quien = golpe.atacante === "jugador" ? "Usaste" : "El rival usó"
+        const rolLocal = esPartidaOnline() ? rolLocalArena() : "jugador"
+        const quien = golpe.atacante === rolLocal ? "Usaste" : "El rival usó"
         partes.push(quien + " " + golpe.ataqueNombre + " (-" + golpe.dano + ")")
     }
     for (const cancelado of resultado.cancelados) {
+        const rolLocal = esPartidaOnline() ? rolLocalArena() : "jugador"
         if (cancelado.motivo === "aturdido") {
-            partes.push((cancelado.rol === "jugador" ? "Quedaste" : "El rival quedó") + " aturdido")
+            partes.push((cancelado.rol === rolLocal ? "Quedaste" : "El rival quedó") + " aturdido")
         }
         else if (cancelado.motivo === "sin-energia") {
-            partes.push(cancelado.rol === "jugador"
+            partes.push(cancelado.rol === rolLocal
                 ? "Te robaron la energía: tu ataque no llegó"
                 : "Le robaste la energía al rival: su ataque no llegó")
         }
@@ -265,7 +356,8 @@ function textoUltimoTurno(resultado) {
         partes.push("La quemadura hizo " + resultado.residual[0].dano + " de daño")
     }
     if (resultado.terminado) {
-        partes.push(resultado.ganador === "jugador" ? "¡Ganaste la ronda!" : resultado.ganador === "enemigo" ? "Perdiste la ronda" : "Ronda empatada")
+        const ganador = ganadorLocalArena(resultado.ganador)
+        partes.push(ganador === "jugador" ? "¡Ganaste la ronda!" : ganador === "enemigo" ? "Perdiste la ronda" : "Ronda empatada")
     }
     return partes.join(" · ")
 }
@@ -374,6 +466,9 @@ function avanzarRelojArena(deltaMs) {
     }
     relojArena = Math.max(0, relojArena - deltaMs)
     if (relojArena > 0) {
+        return
+    }
+    if (esPartidaOnline()) {
         return
     }
     const basico = Motor.ataquesDe(dueloArena, "jugador").find(function (a) {
@@ -518,7 +613,8 @@ function actualizarBotonesArena() {
         contenedor.innerHTML = ""
         return
     }
-    const ataques = Motor.ataquesDe(dueloArena, "jugador")
+    const rol = esPartidaOnline() ? rolLocalArena() : "jugador"
+    const ataques = Motor.ataquesDe(dueloArena, rol)
     const puedeElegir = !turnoBloqueado && !Motor.estaTerminado(dueloArena)
     contenedor.innerHTML = ""
     for (const ataque of ataques) {
@@ -564,11 +660,12 @@ function anunciarArena(texto) {
 function actualizarMarcadorArena() {
     const marcadorJugador = document.getElementById("vidas-jugador")
     const marcadorEnemigo = document.getElementById("vidas-enemigo")
+    const marcador = marcadorPartidaArena()
     if (marcadorJugador) {
-        marcadorJugador.textContent = String(winsJugador)
+        marcadorJugador.textContent = String(marcador.jugador)
     }
     if (marcadorEnemigo) {
-        marcadorEnemigo.textContent = String(winsEnemigo)
+        marcadorEnemigo.textContent = String(marcador.enemigo)
     }
 }
 

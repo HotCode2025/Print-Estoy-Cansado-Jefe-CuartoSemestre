@@ -2,22 +2,23 @@
 // Mostrar etapas, cartas, marcador, reglas y reinicio de partida.
 // E0: corte mecánico de avatar.js. Sin cambios de comportamiento.
 
-// Mostrar una etapa (1-3) ocultando las demás sin mover nodos ni reemplazar innerHTML.
+// Mostrar una etapa (1-4) sin desmontar la arena, que sigue visible durante la batalla.
 // Los listeners se enlazan una sola vez en iniciarJuego/iniciarCombate.
 function mostrarEtapa(n) {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
         const etapa = document.getElementById("etapa-" + i)
         if (etapa) {
-            etapa.hidden = (i !== n)
+            etapa.hidden = i !== n && !(i === 2 && n === 3)
         }
     }
 
-    // Fuera de la etapa 2 no hay arena que animar: se corta el loop.
-    if (n !== 2) {
+    // La arena queda visible y animada durante el duelo.
+    if (n !== 2 && n !== 3) {
         detenerAnimacionMapa()
     }
 
-    const titulo = document.getElementById("titulo-etapa-" + n)
+    const tituloId = n === 2 ? "titulo-mapa" : "titulo-etapa-" + n
+    const titulo = document.getElementById(tituloId)
     if (titulo) {
         titulo.focus()
     }
@@ -137,6 +138,18 @@ function seleccionarPersonajeJugador() {
         return
     }
 
+    if (conexionOnline.codigo) {
+        if (!seleccionarPersonajeOnline(elegido)) {
+            avisoSeleccion.textContent = "No se pudo enviar la selección. Revisá la conexión con la sala."
+            return
+        }
+        personajeJugador = elegido.id
+        avisoSeleccion.textContent = ""
+        definirCartasDeshabilitadas(true)
+        document.getElementById("boton-personaje").disabled = true
+        return
+    }
+
     personajeJugador = elegido.id
 
     actualizarMarcador("jugador", personajeJugador)
@@ -146,18 +159,8 @@ function seleccionarPersonajeJugador() {
     definirCartasDeshabilitadas(true)
     document.getElementById("boton-personaje").disabled = true
 
-    habilitarAtaques()
-    seleccionarPersonajeEnemigo()
-    mostrarEtapa(2)
     iniciarMapa()
-}
-
-// Habilitar los botones de ataque de la arena. Los crea duelo.js desde el kit de
-// la nación, así que se buscan por el contenedor y no por id fijo.
-function habilitarAtaques() {
-    document.querySelectorAll("#acciones-duelo [data-ataque]").forEach(function (boton) {
-        boton.disabled = false
-    })
+    mostrarEtapa(2)
 }
 
 // Deshabilitar los botones de ataque
@@ -167,13 +170,15 @@ function deshabilitarAtaques() {
     })
 }
 
-// Selección aleatoria del enemigo desde el registro (permite espejo: puede salir el mismo).
-function seleccionarPersonajeEnemigo() {
-    const indice = aleatorio(0, PERSONAJES.length - 1)
-
-    personajeEnemigo = PERSONAJES[indice].id
-
+// El rival se define por el personaje con el que el jugador colisiona en el mapa.
+function seleccionarPersonajeEnemigo(enemigo) {
+    const datos = typeof enemigo === "string" ? buscarPersonaje(enemigo) : enemigo
+    if (!datos || datos.id === personajeJugador) {
+        return false
+    }
+    personajeEnemigo = datos.id
     actualizarMarcador("enemigo", personajeEnemigo)
+    return true
 }
 
 // Abrir y cerrar el cuadro de reglas
@@ -203,6 +208,9 @@ function reiniciarPartida() {
     rondas = 0
     personajeJugador = ""
     personajeEnemigo = ""
+    cerrarConexionOnline()
+    limpiarPersonajesOnline()
+    document.getElementById("boton-personaje").textContent = "Jugar contra la computadora"
 
     // Las rondas ganadas y los botones de ataque los limpia duelo.js; el registro
     // de combate y la selección se limpian acá.

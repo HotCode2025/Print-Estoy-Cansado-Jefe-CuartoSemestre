@@ -18,13 +18,14 @@ function iniciarJuego() {
         botonJugarNuevo.addEventListener("click", reiniciarPartida)
     }
 
-    const botonVerReglas = document.getElementById("boton-ver-reglas-etapa3")
+    const botonVerReglas = document.getElementById("boton-ver-reglas-etapa4")
     if (botonVerReglas) {
         botonVerReglas.addEventListener("click", abrirReglas)
     }
 
     configurarDialogoReglas()
     configurarControlesMapa()
+    configurarOnline()
     renderSeleccion()
     configurarFormularioPersonaje()
     ocultarMapa()
