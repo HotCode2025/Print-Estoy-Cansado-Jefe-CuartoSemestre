@@ -34,14 +34,11 @@ cover.addEventListener("click", function () {
 var btn = document.getElementById("activate");
 activate.addEventListener("click", function () {
     this.classList.add("pushed");
-    alarm.onload = 10.1;
+    // La alarma y el cartel arrancan al mismo tiempo
+    alarm.currentTime = 0;
     alarm.play();
-    setTimeout(function () {
-        panel.classList.add("show");
-        theCount = setInterval(showCountdown, 1000);
-        alarm.load();
-        alarm.play();
-    }, 500);
+    panel.classList.add("show");
+    theCount = setInterval(showCountdown, 1000);
 });
 
 var abort = document.getElementById("abort");
