@@ -11,24 +11,33 @@ const COOKIE_OPTIONS = {
 
 const crearToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: "1d" });
 
-export const signup = async (req, res, next) => {
+export const signin = async (req, res, next) => {
   try {
-    const { nombre, email, password } = req.body;
-    if (!nombre || !nombre.trim() || !email || !email.trim() || !password) {
-      return res.status(400).json({ message: "Nombre, email y password son requeridos" });
+    const { email, password } = req.body;
+
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ message: "El correo no esta registrado" });
     }
-    const existe = await pool.query("SELECT id FROM users WHERE email = $1", [email.trim()]);
-    if (existe.rowCount > 0) {
-      return res.status(400).json({ message: "El email ya está registrado" });
+
+    const validPassword = await bcrypt.compare(password, result.rows[0].password);
+
+    if (!validPassword) {
+      return res.status(400).json({ message: "La contraseña es incorrecta" });
     }
-    const hash = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      "INSERT INTO users (nombre, email, password) VALUES ($1, $2, $3) RETURNING id, nombre, email",
-      [nombre.trim(), email.trim(), hash]
-    );
-    const user = result.rows[0];
-    res.cookie("token", crearToken(user.id), COOKIE_OPTIONS);
-    res.status(201).json(user);
+
+    const token = await crearToken({ id: result.rows[0].id });
+    console.log(result);
+
+    res.cookie("token", token, {
+      //httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 60 * 60 * 24 * 1000, // 1 day
+    });
+
+    return res.json(result.rows[0]);
   } catch (err) {
     next(err);
   }
